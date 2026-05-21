@@ -1,0 +1,1327 @@
+/* -------------------------------------------------------------
+ * 逢甲大學畢業門檻與時間管理整合系統 - 全域樣式與主題設定
+ * ------------------------------------------------------------- */
+
+/* Google Fonts 與 CSS 變數定義 */
+:root {
+  /* 字型 */
+  --font-family: 'Outfit', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  /* 配色系統 (預設深色模式) */
+  --theme-transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+/* 深色模式變數 (預設) */
+.dark-theme {
+  --bg-primary: #080c16;
+  --bg-secondary: #0d1324;
+  --bg-card: rgba(20, 28, 50, 0.55);
+  --bg-card-hover: rgba(30, 41, 73, 0.7);
+  --bg-input: rgba(15, 23, 42, 0.6);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-color-hover: rgba(255, 255, 255, 0.16);
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  --primary-color: #6366f1; /* 靛藍 */
+  --primary-glow: rgba(99, 102, 241, 0.35);
+  --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  --success-color: #10b981; /* 綠 */
+  --warning-color: #f59e0b; /* 橘黃 */
+  --danger-color: #ef4444; /* 紅 */
+  --info-color: #3b82f6; /* 藍 */
+  
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
+  --glass-blur: blur(14px);
+  --glass-saturate: saturate(180%);
+}
+
+/* 淺色模式變數 */
+.light-theme {
+  --bg-primary: #f1f5f9;
+  --bg-secondary: #e2e8f0;
+  --bg-card: rgba(255, 255, 255, 0.7);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --bg-input: rgba(255, 255, 255, 0.9);
+  --border-color: rgba(15, 23, 42, 0.08);
+  --border-color-hover: rgba(15, 23, 42, 0.15);
+  
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  
+  --primary-color: #4f46e5;
+  --primary-glow: rgba(79, 70, 229, 0.2);
+  --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  --success-color: #059669;
+  --warning-color: #d97706;
+  --danger-color: #dc2626;
+  --info-color: #2563eb;
+  
+  --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.12);
+  --glass-blur: blur(14px);
+  --glass-saturate: saturate(140%);
+}
+
+/* 基礎設定 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+  min-height: 100vh;
+  transition: var(--theme-transition);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* 背景裝飾球 */
+.bg-decorations {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.gradient-sphere {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.15;
+  transition: var(--theme-transition);
+}
+
+.sphere-1 {
+  top: -10%;
+  right: 10%;
+  width: 40vw;
+  height: 40vw;
+  background: radial-gradient(circle, #6366f1, #a855f7);
+}
+
+.sphere-2 {
+  bottom: -10%;
+  left: 5%;
+  width: 45vw;
+  height: 45vw;
+  background: radial-gradient(circle, #ec4899, #3b82f6);
+}
+
+.light-theme .gradient-sphere {
+  opacity: 0.08;
+}
+
+/* -------------------------------------------------------------
+ * 共用元件樣式 (Buttons, Badges, Glass Cards)
+ * ------------------------------------------------------------- */
+
+/* 毛玻璃卡片基底 */
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: var(--glass-blur) var(--glass-saturate);
+  -webkit-backdrop-filter: var(--glass-blur) var(--glass-saturate);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  box-shadow: var(--shadow-md);
+  padding: 24px;
+  transition: var(--theme-transition);
+}
+
+.glass-card:hover {
+  border-color: var(--border-color-hover);
+  box-shadow: var(--shadow-lg);
+}
+
+/* 按鈕樣式 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-family);
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  outline: none;
+}
+
+.btn-primary {
+  background: var(--primary-gradient);
+  color: #ffffff;
+  box-shadow: 0 4px 15px var(--primary-glow);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--primary-glow);
+  opacity: 0.95;
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-outline {
+  background: transparent;
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.btn-outline:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--text-secondary);
+}
+
+.light-theme .btn-outline:hover {
+  background: rgba(15, 23, 42, 0.05);
+}
+
+.btn-danger-outline {
+  background: transparent;
+  border-color: rgba(239, 68, 68, 0.3);
+  color: var(--danger-color);
+}
+
+.btn-danger-outline:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: var(--danger-color);
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.btn-sm {
+  font-size: 0.85rem;
+  padding: 6px 14px;
+  border-radius: 8px;
+}
+
+.btn-block {
+  display: flex;
+  width: 100%;
+}
+
+/* 圖示按鈕 */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.icon-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--text-secondary);
+  transform: scale(1.05);
+}
+
+/* 標籤徽章 */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-primary {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.light-theme .badge-primary {
+  background: rgba(79, 70, 229, 0.1);
+  color: var(--primary-color);
+}
+
+/* 狀態文字色彩 */
+.text-success { color: var(--success-color) !important; }
+.text-warning { color: var(--warning-color) !important; }
+.text-danger { color: var(--danger-color) !important; }
+.text-info { color: var(--info-color) !important; }
+
+/* 標題與排版 */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.card-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* -------------------------------------------------------------
+ * 頂部導覽列 (App Header)
+ * ------------------------------------------------------------- */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+  background: rgba(8, 12, 22, 0.65);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--border-color);
+  transition: var(--theme-transition);
+}
+
+.light-theme .app-header {
+  background: rgba(241, 251, 249, 0.65);
+}
+
+.header-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: var(--primary-gradient);
+  border-radius: 12px;
+  color: #ffffff;
+  box-shadow: 0 4px 12px var(--primary-glow);
+}
+
+.title-area h1 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  background: linear-gradient(135deg, var(--text-primary) 30%, var(--text-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.title-area p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* 範本下拉選單 */
+.template-selector select {
+  font-family: var(--font-family);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.template-selector select:hover {
+  border-color: var(--text-secondary);
+}
+
+/* 亮暗色圖示切換 */
+.sun-icon {
+  display: none;
+}
+
+.moon-icon {
+  display: block;
+}
+
+.light-theme .sun-icon {
+  display: block;
+}
+
+.light-theme .moon-icon {
+  display: none;
+}
+
+/* -------------------------------------------------------------
+ * 儀表板版面配置 (Main Content)
+ * ------------------------------------------------------------- */
+.dashboard-container {
+  max-width: 1400px;
+  margin: 32px auto;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* 第一區：橫向兩格卡片 (Overview Section) */
+.overview-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+@media (max-width: 992px) {
+  .overview-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 總學分環形卡片 */
+.main-progress-card .progress-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 24px;
+  padding: 12px 0;
+}
+
+.progress-ring-wrapper {
+  position: relative;
+  width: 180px;
+  height: 180px;
+}
+
+.progress-ring {
+  transform: rotate(-90deg);
+}
+
+.progress-ring-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.05);
+  stroke-width: 12;
+}
+
+.light-theme .progress-ring-bg {
+  stroke: rgba(15, 23, 42, 0.05);
+}
+
+.progress-ring-bar {
+  fill: none;
+  stroke: var(--primary-color);
+  stroke-width: 12;
+  stroke-linecap: round;
+  /* 圓周長為 2 * pi * r = 2 * 3.14159 * 75 = 471.23 */
+  stroke-dasharray: 471.23;
+  stroke-dashoffset: 471.23;
+  transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-ring-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-ring-text .number {
+  font-size: 2.2rem;
+  font-weight: 800;
+  font-family: 'Outfit', sans-serif;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.progress-ring-text .separator {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 2px 0;
+}
+
+.progress-ring-text .target {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.progress-ring-text .unit {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.progress-stats-details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 150px;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed var(--border-color);
+  padding-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.stat-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-family: 'Outfit', sans-serif;
+}
+
+/* 非學分要求清單 */
+.requirements-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.req-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid transparent;
+  transition: all 0.25s ease;
+}
+
+.light-theme .req-item {
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.req-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border-color);
+}
+
+.light-theme .req-item:hover {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.req-status-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.req-status-icon::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: transparent;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+/* 通過狀態的非學分項目 */
+.req-item.passed .req-status-icon {
+  border-color: var(--success-color);
+  background: rgba(16, 185, 129, 0.15);
+}
+
+.req-item.passed .req-status-icon::after {
+  content: '✓';
+  color: var(--success-color);
+  font-weight: bold;
+  font-size: 0.75rem;
+  width: auto;
+  height: auto;
+  background: transparent;
+}
+
+/* 警示/未通過狀態 */
+.req-item.failed .req-status-icon {
+  border-color: var(--danger-color);
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.req-item.failed .req-status-icon::after {
+  content: '!';
+  color: var(--danger-color);
+  font-weight: bold;
+  font-size: 0.75rem;
+  width: auto;
+  height: auto;
+  background: transparent;
+}
+
+.req-details h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.req-details p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* -------------------------------------------------------------
+ * 第二區：學分分類設定表格 (Threshold Table)
+ * ------------------------------------------------------------- */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.styled-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+  text-align: left;
+}
+
+.styled-table th,
+.styled-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.95rem;
+}
+
+.styled-table th {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.light-theme .styled-table th {
+  background: rgba(15, 23, 42, 0.01);
+}
+
+.styled-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.styled-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.015);
+}
+
+.light-theme .styled-table tbody tr:hover {
+  background-color: rgba(15, 23, 42, 0.015);
+}
+
+/* 色彩顯示方塊 */
+.color-badge-preview {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  vertical-align: middle;
+  margin-right: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 單項進度條 */
+.table-progress-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 180px;
+}
+
+.table-progress-bar-bg {
+  flex-grow: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 99px;
+  overflow: hidden;
+  position: relative;
+}
+
+.light-theme .table-progress-bar-bg {
+  background: rgba(15, 23, 42, 0.05);
+}
+
+.table-progress-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  width: 0;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.table-progress-percentage {
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-width: 35px;
+  text-align: right;
+  font-family: 'Outfit', sans-serif;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-center {
+  text-align: center;
+}
+
+/* 警告框 */
+.threshold-summary-warning {
+  margin-top: 20px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  color: var(--warning-color);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+  animation: fadeIn 0.3s ease;
+}
+
+/* -------------------------------------------------------------
+ * 第三區：課程規劃與分學期排版 (Course Planner & Semester Grid)
+ * ------------------------------------------------------------- */
+.planner-layout {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 1200px) {
+  .planner-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 表單卡片與固定位置 */
+.course-form-card {
+  position: sticky;
+  top: 96px; /* Header 高度 + 間距 */
+  z-index: 10;
+}
+
+@media (max-width: 1200px) {
+  .course-form-card {
+    position: static;
+  }
+}
+
+/* 表單元素樣式 */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group-sub {
+  margin-top: 10px;
+  padding-left: 28px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+}
+
+input[type="text"],
+input[type="number"],
+select {
+  width: 100%;
+  font-family: var(--font-family);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.form-help {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.form-divider {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 16px 0;
+}
+
+/* 自訂核取方塊 */
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.custom-checkbox-container {
+  display: flex;
+  position: relative;
+  padding-left: 28px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  user-select: none;
+  align-items: center;
+}
+
+.custom-checkbox-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  height: 18px;
+  width: 18px;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.custom-checkbox-container:hover input ~ .checkmark {
+  border-color: var(--text-secondary);
+}
+
+.custom-checkbox-container input:checked ~ .checkmark {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.custom-checkbox-container input:checked ~ .checkmark:after {
+  display: block;
+}
+
+.custom-checkbox-container .checkmark:after {
+  left: 6px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* 顏色選擇器 */
+.color-picker-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 6px 12px;
+}
+
+input[type="color"] {
+  border: none;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.color-hex-label {
+  font-size: 0.85rem;
+  font-family: 'Outfit', sans-serif;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+/* -------------------------------------------------------------
+ * 學期規劃卡片與列表 (Semester Cards)
+ * ------------------------------------------------------------- */
+.semester-planner-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.semester-card {
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: all 0.25s ease;
+  min-height: 250px;
+}
+
+.light-theme .semester-card {
+  background: rgba(15, 23, 42, 0.015);
+}
+
+.semester-card:hover {
+  border-color: var(--border-color-hover);
+  transform: translateY(-4px);
+}
+
+/* 學期卡片頂部統計 */
+.semester-header {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+}
+
+.semester-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.semester-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* 學期學分警示 */
+.semester-card.overloaded {
+  border-color: rgba(239, 68, 68, 0.3);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.08);
+}
+
+.semester-card.underloaded {
+  border-color: rgba(245, 158, 11, 0.3);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.08);
+}
+
+/* 課程項目卡片 */
+.semester-courses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-grow: 1;
+}
+
+.course-item-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--bg-card);
+  border-left: 4px solid var(--primary-color);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  gap: 10px;
+}
+
+.course-item-pill:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--text-secondary);
+  transform: scale(1.02);
+}
+
+.course-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.course-item-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.course-item-meta {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.course-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.course-status-dot.completed { background-color: var(--success-color); }
+.course-status-dot.inprogress { background-color: var(--warning-color); }
+.course-status-dot.planned { background-color: var(--info-color); }
+
+.course-item-actions {
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+}
+
+.course-item-pill:hover .course-item-actions {
+  opacity: 1;
+}
+
+.course-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color 0.15s ease;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.course-action-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.light-theme .course-action-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.course-action-btn.delete:hover {
+  color: var(--danger-color);
+}
+
+/* 學期內為空 */
+.semester-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  border: 1px dashed var(--border-color);
+  border-radius: 10px;
+  min-height: 100px;
+  text-align: center;
+}
+
+/* -------------------------------------------------------------
+ * 彈窗樣式 (Modal Dialogs)
+ * ------------------------------------------------------------- */
+.modal-dialog {
+  border: none;
+  background: transparent;
+  margin: auto;
+  outline: none;
+  max-width: 500px;
+  width: 90%;
+  animation: modalScaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.modal-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: modalBackdropFadeIn 0.3s ease forwards;
+}
+
+.modal-content {
+  border-radius: 24px;
+  box-shadow: var(--shadow-lg);
+  padding: 30px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.modal-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  color: var(--text-primary);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+/* -------------------------------------------------------------
+ * Toast 訊息提示元件 (Toast Notifications)
+ * ------------------------------------------------------------- */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 1000;
+}
+
+.toast {
+  background: var(--bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-color);
+  padding: 14px 20px;
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 250px;
+  max-width: 380px;
+  animation: toastSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  position: relative;
+  overflow: hidden;
+}
+
+.toast::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: var(--primary-color);
+}
+
+.toast.success::before { background-color: var(--success-color); }
+.toast.warning::before { background-color: var(--warning-color); }
+.toast.danger::before { background-color: var(--danger-color); }
+
+.toast-closing {
+  animation: toastFadeOut 0.25s ease forwards;
+}
+
+/* -------------------------------------------------------------
+ * 頁尾樣式 (App Footer)
+ * ------------------------------------------------------------- */
+.app-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  padding: 24px 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.footer-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.footer-system-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* -------------------------------------------------------------
+ * Keyframe 動畫定義 (Animations)
+ * ------------------------------------------------------------- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes toastSlideIn {
+  from { transform: translateX(100px) scale(0.9); opacity: 0; }
+  to { transform: translateX(0) scale(1); opacity: 1; }
+}
+
+@keyframes toastFadeOut {
+  to { transform: translateX(50px) scale(0.95); opacity: 0; }
+}
+
+@keyframes modalScaleUp {
+  from { transform: scale(0.9) translateY(20px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes modalBackdropFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* RWD 微調 */
+@media (max-width: 768px) {
+  .header-container {
+    flex-direction: column;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .template-selector {
+    flex-grow: 1;
+  }
+
+  .template-selector select {
+    width: 100%;
+  }
+
+  .dashboard-container {
+    margin: 16px auto;
+    padding: 0 16px;
+    gap: 20px;
+  }
+
+  .footer-container {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}

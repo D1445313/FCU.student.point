@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>逢甲大學畢業門檻與學術時間管理系統</title>
+  <meta name="description" content="逢甲大學專屬的學術學分進度與畢業門檻自訂系統，協助學生規劃修課學期，精準掌控學分進度。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+  <!-- 背景粒子與裝飾漸層 -->
+  <div class="bg-decorations">
+    <div class="gradient-sphere sphere-1"></div>
+    <div class="gradient-sphere sphere-2"></div>
+  </div>
+
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="logo">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+            <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
+          </svg>
+        </div>
+        <div class="title-area">
+          <h1>逢甲大學學業進度與時間管理整合系統</h1>
+          <p>畢業門檻自訂與學分時間規劃儀表板</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="template-selector">
+          <label for="preset-templates" class="sr-only">預載範本</label>
+          <select id="preset-templates" aria-label="選擇畢業範本">
+            <option value="" disabled selected>快速套用學校門檻範本...</option>
+            <option value="fcu-standard">逢甲大學 通用畢業門檻 (128 學分)</option>
+            <option value="fcu-iecs">逢甲大學 資訊工程學系 (128 學分)</option>
+            <option value="fcu-co">逢甲大學 商學院通用門檻 (128 學分)</option>
+            <option value="empty">清除所有，完全自訂</option>
+          </select>
+        </div>
+        <button id="theme-toggle" class="icon-btn" aria-label="切換深淺色主題" title="切換主題">
+          <svg class="sun-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+          <svg class="moon-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-container">
+    <!-- 第一區：統計總覽與非學分門檻 -->
+    <section class="overview-section" aria-label="修課進度總覽">
+      <!-- 總進度環形圖 -->
+      <div class="glass-card main-progress-card">
+        <div class="card-header flex-between">
+          <h2 class="card-title">畢業學分總進度</h2>
+          <button class="btn btn-sm btn-link" id="btn-edit-total-credits" style="padding: 0; min-height: unset;">編輯目標</button>
+        </div>
+        <div class="progress-container">
+          <div class="progress-ring-wrapper">
+            <svg class="progress-ring" width="180" height="180">
+              <circle class="progress-ring-bg" cx="90" cy="90" r="75"/>
+              <circle class="progress-ring-bar" id="main-progress-ring" cx="90" cy="90" r="75"/>
+            </svg>
+            <div class="progress-ring-text">
+              <span class="number" id="earned-credits-total">0</span>
+              <span class="separator">/</span>
+              <span class="target" id="target-credits-total">128</span>
+              <span class="unit">學分</span>
+            </div>
+          </div>
+          <div class="progress-stats-details">
+            <div class="stat-item">
+              <span class="stat-label">已通過</span>
+              <span class="stat-value text-success" id="stat-completed-credits">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">修習中</span>
+              <span class="stat-value text-warning" id="stat-inprogress-credits">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">規劃中</span>
+              <span class="stat-value text-info" id="stat-planned-credits">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 非學分指標狀態 -->
+      <div class="glass-card non-credit-card">
+        <div class="card-header flex-between">
+          <h2 class="card-title">非學分畢業門檻指標</h2>
+          <button class="btn btn-sm btn-outline" id="btn-edit-non-credit">設定指標</button>
+        </div>
+        <div class="requirements-checklist">
+          <div class="req-item" id="req-english">
+            <div class="req-status-icon"></div>
+            <div class="req-details">
+              <h3>外語畢業門檻</h3>
+              <p id="desc-english">未設定 (預設多益 500 / 650 分)</p>
+            </div>
+          </div>
+          <div class="req-item" id="req-service">
+            <div class="req-status-icon"></div>
+            <div class="req-details">
+              <h3>服務學習 (一、二)</h3>
+              <p id="desc-service">尚未通過</p>
+            </div>
+          </div>
+          <div class="req-item" id="req-ethics">
+            <div class="req-status-icon"></div>
+            <div class="req-details">
+              <h3>學術倫理教育課程</h3>
+              <p id="desc-ethics">尚未通過</p>
+            </div>
+          </div>
+          <div class="req-item" id="req-pe">
+            <div class="req-status-icon"></div>
+            <div class="req-details">
+              <h3>大一、大二體育</h3>
+              <p id="desc-pe">尚未通過</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 第二區：畢業學分門檻自訂面板 -->
+    <section class="threshold-section" aria-label="畢業學分門檻設定">
+      <div class="glass-card threshold-card">
+        <div class="card-header flex-between">
+          <div>
+            <h2 class="card-title">學分分類畢業門檻設定</h2>
+            <p class="card-subtitle">自訂各學分分類之畢業標準，點擊數值即可編輯</p>
+          </div>
+          <div class="actions">
+            <button class="btn btn-primary btn-sm" id="btn-add-category">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              新增分類
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="styled-table" id="table-categories">
+            <thead>
+              <tr>
+                <th scope="col">分類名稱</th>
+                <th scope="col">代表顏色</th>
+                <th scope="col" class="text-right">目標學分</th>
+                <th scope="col" class="text-right">已通過</th>
+                <th scope="col" class="text-right">修習中</th>
+                <th scope="col">修習進度</th>
+                <th scope="col" class="text-center">操作</th>
+              </tr>
+            </thead>
+            <tbody id="categories-body">
+              <!-- JS 動態插入 -->
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="threshold-summary-warning" id="threshold-sum-warning" style="display: none;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <span id="warning-text">各分類目標學分總和與畢業總學分設定不符。</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 第三區：學期規劃與課程管理 -->
+    <section class="course-planner-section" aria-label="課程規劃與修課進度管理">
+      <div class="planner-layout">
+        <!-- 左側：新增/編輯課程表單 -->
+        <div class="glass-card course-form-card">
+          <div class="card-header">
+            <h2 class="card-title" id="course-form-title">新增修課紀錄</h2>
+          </div>
+          <form id="course-form" novalidate>
+            <input type="hidden" id="course-id">
+            
+            <div class="form-group">
+              <label for="course-name">課程名稱</label>
+              <input type="text" id="course-name" placeholder="例如：資料結構、微積分" required>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="course-category">學分分類</label>
+                <select id="course-category" required>
+                  <!-- JS 動態插入 -->
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="course-credits">學分數</label>
+                <input type="number" id="course-credits" min="0" max="10" step="0.5" placeholder="3" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="course-semester">修課學期</label>
+                <select id="course-semester" required>
+                  <option value="110-1">110 學年度 第 1 學期</option>
+                  <option value="110-2">110 學年度 第 2 學期</option>
+                  <option value="111-1">111 學年度 第 1 學期</option>
+                  <option value="111-2">111 學年度 第 2 學期</option>
+                  <option value="112-1" selected>112 學年度 第 1 學期</option>
+                  <option value="112-2">112 學年度 第 2 學期</option>
+                  <option value="113-1">113 學年度 第 1 學期</option>
+                  <option value="113-2">113 學年度 第 2 學期</option>
+                  <option value="114-1">114 學年度 第 1 學期</option>
+                  <option value="114-2">114 學年度 第 2 學期</option>
+                  <option value="115-1">115 學年度 第 1 學期</option>
+                  <option value="115-2">115 學年度 第 2 學期</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="course-status">修課狀態</label>
+                <select id="course-status" required>
+                  <option value="completed">已通過 (已取得學分)</option>
+                  <option value="inprogress">修習中 (本學期正修)</option>
+                  <option value="planned">計畫中 (未來欲選修)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary btn-block" id="btn-submit-course">儲存課程</button>
+              <button type="button" class="btn btn-outline btn-block" id="btn-cancel-edit" style="display: none;">取消編輯</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- 右側：學期分組課程清單 -->
+        <div class="glass-card course-list-card">
+          <div class="card-header flex-between">
+            <div>
+              <h2 class="card-title">學期修課規劃藍圖</h2>
+              <p class="card-subtitle">依學期分組，點擊卡片編輯或刪除課程</p>
+            </div>
+            <div class="filter-actions">
+              <label for="filter-semester" class="sr-only">篩選學期</label>
+              <select id="filter-semester" aria-label="篩選學期">
+                <option value="all">所有學期</option>
+                <!-- JS 動態插入 -->
+              </select>
+            </div>
+          </div>
+          
+          <div class="semester-planner-grid" id="semester-grid">
+            <!-- JS 動態插入各學期卡片 -->
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 頁尾與系統操作 -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-info">
+        <p>© 2026 逢甲大學學業進度與時間管理系統 | 設計者：Elin Wang</p>
+      </div>
+      <div class="footer-system-actions">
+        <button class="btn btn-sm btn-outline" id="btn-export">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+          </svg>
+          匯出備份 (JSON)
+        </button>
+        <button class="btn btn-sm btn-outline" id="btn-import-trigger">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+          </svg>
+          匯入備份
+        </button>
+        <input type="file" id="file-import" accept=".json" style="display: none;" aria-label="選擇要匯入的備份 JSON 檔案">
+        <button class="btn btn-sm btn-danger-outline" id="btn-reset">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+          清除所有資料
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 彈窗1：新增/編輯自訂分類 Modal -->
+  <dialog class="modal-dialog" id="modal-category">
+    <div class="modal-content glass-card">
+      <div class="modal-header">
+        <h3 id="category-modal-title">新增學分分類</h3>
+        <button class="close-btn" id="btn-close-cat-modal" aria-label="關閉彈窗">&times;</button>
+      </div>
+      <form id="category-modal-form" novalidate>
+        <input type="hidden" id="edit-cat-id">
+        <div class="form-group">
+          <label for="cat-name">分類名稱</label>
+          <input type="text" id="cat-name" placeholder="例如：自由選修、通識人文" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cat-target">目標學分</label>
+            <input type="number" id="cat-target" min="0" max="150" placeholder="20" required>
+          </div>
+          <div class="form-group">
+            <label for="cat-color">代表顏色</label>
+            <div class="color-picker-wrapper">
+              <input type="color" id="cat-color" value="#6366f1">
+              <span class="color-hex-label">#6366f1</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="btn-cancel-cat-modal">取消</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-cat-modal">確認</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- 彈窗2：編輯非學分門檻 Modal -->
+  <dialog class="modal-dialog" id="modal-non-credit">
+    <div class="modal-content glass-card">
+      <div class="modal-header">
+        <h3>編輯非學分畢業門檻</h3>
+        <button class="close-btn" id="btn-close-non-credit-modal" aria-label="關閉彈窗">&times;</button>
+      </div>
+      <form id="non-credit-form" novalidate>
+        <div class="form-group">
+          <label>外語畢業門檻狀態</label>
+          <div class="checkbox-group">
+            <label class="custom-checkbox-container">
+              <input type="checkbox" id="nc-english-passed">
+              <span class="checkmark"></span>
+              英文檢定通過 (符合逢甲畢業資格)
+            </label>
+          </div>
+          <div class="form-group-sub">
+            <label for="nc-english-detail">備註 / 分數 (選填)</label>
+            <input type="text" id="nc-english-detail" placeholder="例如：多益 680 分">
+          </div>
+        </div>
+
+        <hr class="form-divider">
+
+        <div class="form-group">
+          <label>服務學習門檻</label>
+          <div class="checkbox-group">
+            <label class="custom-checkbox-container">
+              <input type="checkbox" id="nc-service-1">
+              <span class="checkmark"></span>
+              服務學習 (一) 通過
+            </label>
+            <label class="custom-checkbox-container">
+              <input type="checkbox" id="nc-service-2">
+              <span class="checkmark"></span>
+              服務學習 (二) 通過
+            </label>
+          </div>
+        </div>
+
+        <hr class="form-divider">
+
+        <div class="form-group">
+          <label>學術倫理教育</label>
+          <div class="checkbox-group">
+            <label class="custom-checkbox-container">
+              <input type="checkbox" id="nc-ethics-passed">
+              <span class="checkmark"></span>
+              台灣學術倫理教育資源中心課程通過
+            </label>
+          </div>
+        </div>
+
+        <hr class="form-divider">
+
+        <div class="form-group">
+          <label>體育門檻</label>
+          <div class="checkbox-group">
+            <label class="custom-checkbox-container">
+              <input type="checkbox" id="nc-pe-1">
+              <span class="checkmark"></span>
+              大一體育（通過）
+            </label>
+            <label class="custom-checkbox-container">
+              <input type="checkbox" id="nc-pe-2">
+              <span class="checkmark"></span>
+              大二體育（通過）
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="btn-cancel-nc-modal">取消</button>
+          <button type="submit" class="btn btn-primary">儲存設定</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- 彈窗3：修改畢業總學分 Modal -->
+  <dialog class="modal-dialog" id="modal-total-credits">
+    <div class="modal-content glass-card">
+      <div class="modal-header">
+        <h3>編輯總畢業學分門檻</h3>
+        <button class="close-btn" id="btn-close-total-modal" aria-label="關閉彈窗">&times;</button>
+      </div>
+      <form id="total-credits-form" novalidate>
+        <div class="form-group">
+          <label for="input-total-credits">總畢業學分目標</label>
+          <input type="number" id="input-total-credits" min="50" max="250" placeholder="128" required>
+          <p class="form-help">逢甲大學學士班一般為 128 學分，部分學系可能有不同規定。</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="btn-cancel-total-modal">取消</button>
+          <button type="submit" class="btn btn-primary">儲存</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- Toast 訊息通知 -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
