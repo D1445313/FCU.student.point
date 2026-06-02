@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}儀表板首頁 - 逢甲大學學業進度與時間管理整合系統{% endblock %}
+
+{% block content %}
+<!-- 第一區塊：學業指標數據 -->
+<section class="dashboard-stats">
+    <!-- 已完成學分卡片 -->
+    <div class="glass-card stat-card">
+        <div class="stat-icon-wrapper purple">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+            </svg>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">已完成學分</span>
+            <span class="stat-value">{{ completed_credits }}<span class="stat-unit">/ 128 學分</span></span>
+        </div>
+    </div>
+
+    <!-- 修習中學分卡片 -->
+    <div class="glass-card stat-card">
+        <div class="stat-icon-wrapper blue">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">修習中學分</span>
+            <span class="stat-value">{{ taking_credits }}<span class="stat-unit">學分</span></span>
+        </div>
+    </div>
+
+    <!-- 平均分數卡片 -->
+    <div class="glass-card stat-card">
+        <div class="stat-icon-wrapper emerald">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2"></path>
+            </svg>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">歷年加權平均分數</span>
+            <span class="stat-value">{{ avg_score }}<span class="stat-unit">分</span></span>
+        </div>
+    </div>
+
+    <!-- GPA 卡片 -->
+    <div class="glass-card stat-card">
+        <div class="stat-icon-wrapper amber">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">累計 GPA</span>
+            <span class="stat-value">{{ avg_gpa }}<span class="stat-unit">/ 4.3</span></span>
+        </div>
+    </div>
+</section>
+
+<!-- 第二區塊：圖表預警與畢業審查進度 -->
+<div class="dashboard-grid">
+    <!-- 畢業資格審查進度條 -->
+    <div class="glass-card">
+        <h3 class="card-title">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+            </svg>
+            畢業資格分類試算
+        </h3>
+        
+        <div class="progress-list">
+            <!-- 總學分 -->
+            {% set total = requirements['總學分'] %}
+            <div class="progress-item">
+                <div class="progress-label-row">
+                    <span>總畢業學分</span>
+                    <span>{{ total.current }} / {{ total.required }} 學分 ({{ completion_rate }}%)</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill primary" style="width: {{ completion_rate }}%;"></div>
+                </div>
+            </div>
+
+            <!-- 必修 -->
+            {% set req = requirements['必修'] %}
+            {% set req_rate = min(int((req.current / req.required) * 100), 100) if req.required > 0 else 0 %}
+            <div class="progress-item">
+                <div class="progress-label-row">
+                    <span>系必修學分</span>
+                    <span>{{ req.current }} / {{ req.required }} 學分</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill secondary" style="width: {{ req_rate }}%;"></div>
+                </div>
+            </div>
+
+            <!-- 選修 -->
+            {% set ele = requirements['選修'] %}
+            {% set ele_rate = min(int((ele.current / ele.required) * 100), 100) if ele.required > 0 else 0 %}
+            <div class="progress-item">
+                <div class="progress-label-row">
+                    <span>系選修學分</span>
+                    <span>{{ ele.current }} / {{ ele.required }} 學分</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill success" style="width: {{ ele_rate }}%;"></div>
+                </div>
+            </div>
+
+            <!-- 通識 -->
+            {% set gen = requirements['通識'] %}
+            {% set gen_rate = min(int((gen.current / gen.required) * 100), 100) if gen.required > 0 else 0 %}
+            <div class="progress-item">
+                <div class="progress-label-row">
+                    <span>通識領域學分</span>
+                    <span>{{ gen.current }} / {{ gen.required }} 學分</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill warning" style="width: {{ gen_rate }}%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 畢業預警與快速引導 -->
+    <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem;">
+        <div>
+            <h3 class="card-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                學分預警系統
+            </h3>
+            
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
+                {% if completed_credits == 0 %}
+                    <div style="background: rgba(14, 165, 233, 0.1); border: 1px solid rgba(14, 165, 233, 0.2); padding: 12px; border-radius: var(--radius-md); font-size: 0.85rem; color: #38bdf8;">
+                        <strong>系統狀態：</strong>目前資料庫中尚無任何課程紀錄，請前往<strong>學分錄入</strong>頁面手動填寫或批次解析匯入您的修課成績。
+                    </div>
+                {% else %}
+                    <!-- 判斷是否有畢業危機 (GPA 或通識/必修不足) -->
+                    {% if avg_gpa < 2.0 and avg_gpa > 0 %}
+                        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); padding: 12px; border-radius: var(--radius-md); font-size: 0.85rem; color: #f87171;">
+                            <strong>🔴 課業警告：</strong>您的累計 GPA 目前低於 2.0，有二一退學危機，請密切注意後續學期修課表現！
+                        </div>
+                    {% endif %}
+                    
+                    {% if completed_credits < 128 and planned_credits == 0 and taking_credits == 0 %}
+                        <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); padding: 12px; border-radius: var(--radius-md); font-size: 0.85rem; color: #fbbf24;">
+                            <strong>🟡 畢業警示：</strong>您的學分數未達 128 畢業標準，且無規劃「修習中」或「待修習」課程，請務必安排後續修課計畫！
+                        </div>
+                    {% endif %}
+
+                    {% if completion_rate >= 100 %}
+                        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 12px; border-radius: var(--radius-md); font-size: 0.85rem; color: #34d399;">
+                            <strong>🟢 畢業審核：</strong>恭喜！您已修滿 128 畢業學分，且滿足基本修課需求。本計算結果僅供修課輔助參考。
+                        </div>
+                    {% else %}
+                        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--card-border); padding: 12px; border-radius: var(--radius-md); font-size: 0.85rem; color: var(--text-secondary);">
+                            <strong>📊 當前進度：</strong>您還需要取得 <strong>{{ 128 - completed_credits }}</strong> 學分才能滿足畢業門檻。
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+            <a href="{{ url_for('courses.input_page') }}" class="btn btn-primary">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 18px; height: 18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                新增與批次匯入課程
+            </a>
+            <a href="{{ url_for('courses.list_page') }}" class="btn btn-secondary">
+                檢視我的修課清單
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

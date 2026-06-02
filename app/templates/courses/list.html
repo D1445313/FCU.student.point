@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}課程清單 - 逢甲大學學業進度與時間管理整合系統{% endblock %}
+
+{% block content %}
+<!-- 頂部篩選工具列 -->
+<section class="glass-card" style="padding: 1.25rem;">
+    <form action="{{ url_for('courses.list_page') }}" method="GET" class="filter-bar">
+        <!-- 學期篩選 -->
+        <div class="filter-group">
+            <label for="filter_semester">學期：</label>
+            <select id="filter_semester" name="semester">
+                <option value="">全部學期</option>
+                {% for sem in semesters %}
+                    <option value="{{ sem }}" {% if filters.semester == sem %}selected{% endif %}>{{ sem }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- 類別篩選 -->
+        <div class="filter-group">
+            <label for="filter_category">類別：</label>
+            <select id="filter_category" name="category">
+                <option value="">全部類別</option>
+                <option value="必修" {% if filters.category == '必修' %}selected{% endif %}>必修</option>
+                <option value="選修" {% if filters.category == '選修' %}selected{% endif %}>選修</option>
+                <option value="通識" {% if filters.category == '通識' %}selected{% endif %}>通識</option>
+                <option value="體育" {% if filters.category == '體育' %}selected{% endif %}>體育</option>
+                <option value="其他" {% if filters.category == '其他' %}selected{% endif %}>其他</option>
+            </select>
+        </div>
+
+        <!-- 狀態篩選 -->
+        <div class="filter-group">
+            <label for="filter_status">狀態：</label>
+            <select id="filter_status" name="status">
+                <option value="">全部狀態</option>
+                <option value="已完成" {% if filters.status == '已完成' %}selected{% endif %}>已完成</option>
+                <option value="修習中" {% if filters.status == '修習中' %}selected{% endif %}>修習中</option>
+                <option value="待修習" {% if filters.status == '待修習' %}selected{% endif %}>待修習</option>
+            </select>
+        </div>
+
+        <!-- 關鍵字搜尋 -->
+        <div class="filter-group search-group">
+            <input type="text" name="search_query" placeholder="搜尋課程名稱或領域..." value="{{ filters.search_query }}">
+        </div>
+
+        <!-- 動作按鈕 -->
+        <div style="display: flex; gap: 8px;">
+            <button type="submit" class="btn btn-secondary btn-sm" style="background: var(--gradient-secondary); color: #fff; border: none; font-size: 0.85rem; height: 36px; padding: 0 16px;">
+                進行篩選
+            </button>
+            <a href="{{ url_for('courses.list_page') }}" class="btn btn-secondary btn-sm" style="font-size: 0.85rem; height: 36px; display: inline-flex; align-items: center;">
+                重設
+            </a>
+        </div>
+    </form>
+</section>
+
+<!-- 課程清單主表格 -->
+<section class="glass-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3 class="card-title" style="margin-bottom: 0;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+            </svg>
+            我的課程紀錄
+        </h3>
+        <span style="font-size: 0.85rem; color: var(--text-secondary);">共找到 {{ courses|length }} 門課程</span>
+    </div>
+
+    {% if courses %}
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>學期</th>
+                        <th>課程名稱</th>
+                        <th>學分</th>
+                        <th>成績</th>
+                        <th>類別</th>
+                        <th>次類別/領域</th>
+                        <th>修課狀態</th>
+                        <th style="width: 140px; text-align: center;">管理操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for course in courses %}
+                        <tr>
+                            <td><strong>{{ course.semester }}</strong></td>
+                            <td>{{ course.course_name }}</td>
+                            <td>{{ course.credits }} 學分</td>
+                            <td>
+                                {% if course.grade %}
+                                    <span style="font-family: var(--font-heading); font-weight: 600;">{{ course.grade }}</span>
+                                {% else %}
+                                    <span style="color: var(--text-muted); font-style: italic;">未完成</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ course.category }}</td>
+                            <td>
+                                {% if course.subcategory %}
+                                    <span style="color: var(--text-secondary); font-size: 0.85rem;">{{ course.subcategory }}</span>
+                                {% else %}
+                                    <span style="color: var(--text-muted); font-size: 0.85rem;">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if course.status == '已完成' %}
+                                    <span class="badge badge-success">已完成</span>
+                                {% elif course.status == '修習中' %}
+                                    <span class="badge badge-secondary">修習中</span>
+                                {% else %}
+                                    <span class="badge badge-warning">待修習</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 8px; justify-content: center;">
+                                    <!-- 編輯按鈕 (AJAX 觸發) -->
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="openEditModal({{ course.id }})" style="padding: 6px 12px; font-size: 0.8rem;">
+                                        編輯
+                                    </button>
+                                    
+                                    <!-- 刪除按鈕 (表單 POST 提交) -->
+                                    <form action="{{ url_for('courses.delete_course', course_id=course.id) }}" method="POST" onsubmit="return confirm('確定要刪除課程「{{ course.course_name }}」嗎？此動作不可還原！')">
+                                        <button type="submit" class="btn btn-danger btn-sm" style="padding: 6px 12px; font-size: 0.8rem;">
+                                            刪除
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 4rem 2rem; color: var(--text-muted);">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <p style="font-size: 0.95rem;">查無任何符合篩選條件的課程紀錄。</p>
+            <a href="{{ url_for('courses.input_page') }}" class="btn btn-primary btn-sm" style="margin-top: 1rem; display: inline-flex;">
+                立即錄入學分
+            </a>
+        </div>
+    {% endif %}
+</section>
+
+<!-- 課程編輯模態對話框 (Modal Overlay) -->
+<div class="modal-backdrop" id="editModalBackdrop">
+    <div class="glass-card modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3 class="card-title" style="margin-bottom: 0;">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                </svg>
+                編輯課程資料
+            </h3>
+            <span class="modal-close" onclick="closeEditModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width: 24px; height: 24px;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </span>
+        </div>
+
+        <form id="editCourseForm" method="POST" class="form-grid">
+            <input type="hidden" id="edit_course_id" name="course_id">
+            
+            <!-- 學期 -->
+            <div class="form-group">
+                <label for="edit_semester">學期 <span style="color: #ef4444;">*</span></label>
+                <input type="text" id="edit_semester" name="semester" placeholder="例如：112-1" required>
+            </div>
+
+            <!-- 課程名稱 -->
+            <div class="form-group">
+                <label for="edit_course_name">課程名稱 <span style="color: #ef4444;">*</span></label>
+                <input type="text" id="edit_course_name" name="edit_course_name" required>
+            </div>
+
+            <!-- 學分 -->
+            <div class="form-group">
+                <label for="edit_credits">學分數 <span style="color: #ef4444;">*</span></label>
+                <input type="number" id="edit_credits" name="credits" min="1" max="10" required>
+            </div>
+
+            <!-- 成績 -->
+            <div class="form-group">
+                <label for="edit_grade">分數/等第</label>
+                <input type="text" id="edit_grade" name="grade" placeholder="0-100 或 A+, B...">
+            </div>
+
+            <!-- 類別 -->
+            <div class="form-group">
+                <label for="edit_category">課程類別 <span style="color: #ef4444;">*</span></label>
+                <select id="edit_category" name="category" required>
+                    <option value="必修">必修</option>
+                    <option value="選修">選修</option>
+                    <option value="通識">通識</option>
+                    <option value="體育">體育</option>
+                    <option value="其他">其他</option>
+                </select>
+            </div>
+
+            <!-- 次類別 -->
+            <div class="form-group">
+                <label for="edit_subcategory">次類別/領域</label>
+                <input type="text" id="edit_subcategory" name="subcategory" placeholder="如：通識-自然、系定必修">
+            </div>
+
+            <!-- 狀態 -->
+            <div class="form-group full-width">
+                <label for="edit_status">修課狀態 <span style="color: #ef4444;">*</span></label>
+                <select id="edit_status" name="status" required>
+                    <option value="已完成">已完成 (已取得學期成績)</option>
+                    <option value="修習中">修習中 (本學期修讀中)</option>
+                    <option value="待修習">待修習 (未來規劃選修)</option>
+                </select>
+            </div>
+
+            <!-- 操作區 -->
+            <div class="form-group full-width" style="display: flex; gap: 10px; margin-top: 15px;">
+                <button type="button" class="btn btn-secondary" onclick="closeEditModal()" style="flex: 1;">
+                    取消
+                </button>
+                <button type="submit" class="btn btn-primary" style="flex: 2;">
+                    儲存變更
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
