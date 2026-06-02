@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}逢甲大學學業進度與時間管理整合系統{% endblock %}</title>
+    <!-- Meta Descriptions for SEO -->
+    <meta name="description" content="專為逢甲大學學生設計的學業進度追蹤與時間管理整合系統，提供學分試算、GPA換算、畢業門檻自定義及學分預警功能，保護學生隱私不外流。">
+    <!-- 全站共用 CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- 側邊導覽列 (Sidebar) -->
+    <aside class="sidebar">
+        <div class="logo-container">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <span class="logo-text">逢大進度助手</span>
+        </div>
+
+        <nav style="flex-grow: 1;">
+            <ul class="nav-menu">
+                <li class="nav-item {% if request.path == '/' %}active{% endif %}">
+                    <a href="{{ url_for('main.index') }}">
+                        <!-- Dashboard Icon -->
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z"></path>
+                        </svg>
+                        <span>儀表板首頁</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.path == '/courses/input' %}active{% endif %}">
+                    <a href="{{ url_for('courses.input_page') }}">
+                        <!-- Input/Document Icon -->
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span>學分錄入</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.path == '/courses/list' %}active{% endif %}">
+                    <a href="{{ url_for('courses.list_page') }}">
+                        <!-- List/Table Icon -->
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>課程清單</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+            <p>逢甲大學第3組專題</p>
+            <p style="font-size: 0.7rem; margin-top: 4px;">v1.0.0 (純前端 CSS/JS)</p>
+        </div>
+    </aside>
+
+    <!-- 右側主內容區 -->
+    <main class="main-content">
+        <!-- 頂部資訊列 -->
+        <header style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 1rem;">
+            <div>
+                <h1 style="font-size: 1.75rem; font-family: var(--font-heading);">學業進度與時間管理系統</h1>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">FCU Academic Progress & Time Management Assistant</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.03); padding: 8px 16px; border-radius: 50px; border: 1px solid var(--card-border);">
+                <div style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981;"></div>
+                <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">本機端安全儲存中</span>
+            </div>
+        </header>
+
+        <!-- 主要內容注入點 -->
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- 用於儲存後端傳遞的 Flash 訊息，由 JS 讀取並轉化為動態 Toast 顯示 -->
+    <div id="flashMessagesContainer" style="display: none;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message-data" data-category="{{ category }}" data-message="{{ message }}"></div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- 全站共用 JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
