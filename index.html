@@ -133,6 +133,94 @@
       </div>
     </section>
 
+    <!-- 新增：GPA 試算與學術分析儀表板 -->
+    <section class="gpa-section" aria-label="GPA 試算與學術分析" style="margin-top: 16px; margin-bottom: 8px;">
+      <div class="glass-card gpa-card">
+        <div class="gpa-header">
+          <div>
+            <h2 class="card-title">GPA 自動化試算與成績分析</h2>
+            <p class="card-subtitle">依已完成課程之成績，自動計得學分與多軌制 GPA</p>
+          </div>
+          <div class="gpa-scale-toggle">
+            <button class="gpa-scale-btn active" id="btn-scale-43" data-scale="4.3">4.3 制</button>
+            <button class="gpa-scale-btn" id="btn-scale-40" data-scale="4.0">4.0 制</button>
+          </div>
+        </div>
+
+        <div class="gpa-analytics-display">
+          <div class="gpa-big-num-wrapper">
+            <span class="gpa-big-num" id="gpa-cumulative-val">0.00</span>
+            <span class="gpa-big-label">累積學業 GPA</span>
+          </div>
+
+          <!-- 學分詳細加總 (已完成、修習中、規劃中) -->
+          <div class="gpa-credits-sum">
+            <div class="gpa-credit-row">
+              <span class="gpa-credit-label">🎓 已完成學分 (Passing Only)</span>
+              <span class="gpa-credit-val text-success" id="gpa-completed-credits">0 學分</span>
+            </div>
+            <div class="gpa-credit-row">
+              <span class="gpa-credit-label">✍️ 修習中學分 (In-Progress)</span>
+              <span class="gpa-credit-val text-warning" id="gpa-inprogress-credits">0 學分</span>
+            </div>
+            <div class="gpa-credit-row">
+              <span class="gpa-credit-label">📅 待修習學分 (Planned)</span>
+              <span class="gpa-credit-val text-info" id="gpa-planned-credits">0 學分</span>
+            </div>
+          </div>
+          
+          <!-- 成績對照與換算迷你工具 -->
+          <div class="converter-utility">
+            <span class="converter-title">🧮 快捷成績換算對照器</span>
+            <div class="converter-row">
+              <div class="converter-box">
+                <label for="calc-percent-input">百分制分數</label>
+                <input type="number" id="calc-percent-input" min="0" max="100" placeholder="85">
+                <span class="converter-result" id="calc-percent-result">等第: A | GPA: 4.0</span>
+              </div>
+              <div class="converter-box">
+                <label for="calc-letter-select">等級制等第</label>
+                <select id="calc-letter-select" aria-label="選擇等級制等第">
+                  <option value="" disabled selected>請選擇...</option>
+                  <option value="A+">A+ (90-100)</option>
+                  <option value="A">A (85-89)</option>
+                  <option value="A-">A- (80-84)</option>
+                  <option value="B+">B+ (77-79)</option>
+                  <option value="B">B (73-76)</option>
+                  <option value="B-">B- (70-72)</option>
+                  <option value="C+">C+ (67-69)</option>
+                  <option value="C">C (63-66)</option>
+                  <option value="C-">C- (60-62)</option>
+                  <option value="D">D (50-59)</option>
+                  <option value="F">F (0-49)</option>
+                </select>
+                <span class="converter-result" id="calc-letter-result">換算基準: 87分 | GPA: 4.0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 學期 GPA 分析細項 -->
+        <div class="table-responsive" style="margin-top: 10px;">
+          <table class="semester-gpa-table" id="table-semester-gpa">
+            <thead>
+              <tr>
+                <th>學期</th>
+                <th>規劃總學分</th>
+                <th>GPA 計分學分</th>
+                <th>及格學分</th>
+                <th>學期平均分數</th>
+                <th>學期 GPA</th>
+              </tr>
+            </thead>
+            <tbody id="semester-gpa-body">
+              <!-- JS 動態插入 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
     <!-- 第二區：畢業學分門檻自訂面板 -->
     <section class="threshold-section" aria-label="畢業學分門檻設定">
       <div class="glass-card threshold-card">
@@ -234,6 +322,49 @@
                   <option value="inprogress">修習中 (本學期正修)</option>
                   <option value="planned">計畫中 (未來欲選修)</option>
                 </select>
+              </div>
+            </div>
+
+            <!-- 成績輸入區域 (已通過時才顯示) -->
+            <div class="grade-input-section" id="grade-input-area" style="display: none; margin-bottom: 16px;">
+              <label class="converter-title">📝 登錄課程成績</label>
+              <div class="form-row">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label for="course-grade-type">計分方式</label>
+                  <select id="course-grade-type">
+                    <option value="none">不計入 GPA (僅計學分)</option>
+                    <option value="percentage" selected>百分制 (0-100)</option>
+                    <option value="letter">等級制 (A+ ~ F)</option>
+                  </select>
+                </div>
+                
+                <!-- 百分制數值輸入 -->
+                <div class="form-group" id="grade-val-percentage-group" style="margin-bottom: 0;">
+                  <label for="course-grade-percentage">百分制分數</label>
+                  <input type="number" id="course-grade-percentage" min="0" max="100" placeholder="85">
+                </div>
+                
+                <!-- 等級制下拉選取 -->
+                <div class="form-group" id="grade-val-letter-group" style="display: none; margin-bottom: 0;">
+                  <label for="course-grade-letter">等級等第</label>
+                  <select id="course-grade-letter">
+                    <option value="" disabled selected>請選擇...</option>
+                    <option value="A+">A+ (90-100)</option>
+                    <option value="A">A (85-89)</option>
+                    <option value="A-">A- (80-84)</option>
+                    <option value="B+">B+ (77-79)</option>
+                    <option value="B">B (73-76)</option>
+                    <option value="B-">B- (70-72)</option>
+                    <option value="C+">C+ (67-69)</option>
+                    <option value="C">C (63-66)</option>
+                    <option value="C-">C- (60-62)</option>
+                    <option value="D">D (50-59)</option>
+                    <option value="F">F (0-49)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="grade-preview-box" id="grade-live-preview">
+                即時換算預覽：<span class="grade-preview-highlight">請輸入分數</span>
               </div>
             </div>
 

@@ -6,6 +6,7 @@
 let state = {
   theme: 'dark',
   totalTargetCredits: 128,
+  gpaScale: '4.3', // 預設 4.3 制 GPA
   categories: [],
   courses: [],
   nonCredit: {
@@ -18,6 +19,46 @@ let state = {
     pe2: false
   }
 };
+
+// -------------------------------------------------------------
+// 自動化試算引擎 - GPA 百分制與等級制對照表
+// -------------------------------------------------------------
+const GRADE_SCALE = [
+  { letter: 'A+', min: 90, max: 100, gpa43: 4.3, gpa40: 4.0, midpoint: 95, pass: true },
+  { letter: 'A',  min: 85, max: 89,  gpa43: 4.0, gpa40: 4.0, midpoint: 87, pass: true },
+  { letter: 'A-', min: 80, max: 84,  gpa43: 3.7, gpa40: 3.7, midpoint: 82, pass: true },
+  { letter: 'B+', min: 77, max: 79,  gpa43: 3.3, gpa40: 3.3, midpoint: 78, pass: true },
+  { letter: 'B',  min: 73, max: 76,  gpa43: 3.0, gpa40: 3.0, midpoint: 75, pass: true },
+  { letter: 'B-', min: 70, max: 72,  gpa43: 2.7, gpa40: 2.7, midpoint: 71, pass: true },
+  { letter: 'C+', min: 67, max: 69,  gpa43: 2.3, gpa40: 2.3, midpoint: 68, pass: true },
+  { letter: 'C',  min: 63, max: 66,  gpa43: 2.0, gpa40: 2.0, midpoint: 65, pass: true },
+  { letter: 'C-', min: 60, max: 62,  gpa43: 1.7, gpa40: 1.7, midpoint: 61, pass: true },
+  { letter: 'D',  min: 50, max: 59,  gpa43: 1.0, gpa40: 1.0, midpoint: 55, pass: false },
+  { letter: 'F',  min: 0,  max: 49,  gpa43: 0.0, gpa40: 0.0, midpoint: 25, pass: false }
+];
+
+function getGradeScaleByPercentage(score) {
+  const rounded = Math.round(parseFloat(score));
+  if (isNaN(rounded)) return null;
+  return GRADE_SCALE.find(item => rounded >= item.min && rounded <= item.max) || null;
+}
+
+function getGradeScaleByLetter(letter) {
+  if (!letter) return null;
+  return GRADE_SCALE.find(item => item.letter.toUpperCase() === letter.trim().toUpperCase()) || null;
+}
+
+function getGPAByGrade(type, value, scaleSystem = '4.3') {
+  if (type === 'none' || type === undefined) return null;
+  let scaleInfo = null;
+  if (type === 'percentage') {
+    scaleInfo = getGradeScaleByPercentage(value);
+  } else if (type === 'letter') {
+    scaleInfo = getGradeScaleByLetter(value);
+  }
+  if (!scaleInfo) return 0.0;
+  return scaleSystem === '4.3' ? scaleInfo.gpa43 : scaleInfo.gpa40;
+}
 
 // 範本預設資料
 const PRESETS = {
@@ -146,7 +187,27 @@ const DOM = {
   btnCancelCatModal: document.getElementById('btn-cancel-cat-modal'),
   btnCloseCatModal: document.getElementById('btn-close-cat-modal'),
   btnCancelNcModal: document.getElementById('btn-cancel-nc-modal'),
-  btnCloseNonCreditModal: document.getElementById('btn-close-non-credit-modal')
+  btnCloseNonCreditModal: document.getElementById('btn-close-non-credit-modal'),
+  
+  // GPA 試算與分析引擎 DOM 快取
+  gpaCumulativeVal: document.getElementById('gpa-cumulative-val'),
+  gpaCompletedCredits: document.getElementById('gpa-completed-credits'),
+  gpaInprogressCredits: document.getElementById('gpa-inprogress-credits'),
+  gpaPlannedCredits: document.getElementById('gpa-planned-credits'),
+  btnScale43: document.getElementById('btn-scale-43'),
+  btnScale40: document.getElementById('btn-scale-40'),
+  semesterGpaBody: document.getElementById('semester-gpa-body'),
+  courseGradeType: document.getElementById('course-grade-type'),
+  gradeInputArea: document.getElementById('grade-input-area'),
+  gradeValPercentageGroup: document.getElementById('grade-val-percentage-group'),
+  courseGradePercentage: document.getElementById('course-grade-percentage'),
+  gradeValLetterGroup: document.getElementById('grade-val-letter-group'),
+  courseGradeLetter: document.getElementById('course-grade-letter'),
+  gradeLivePreview: document.getElementById('grade-live-preview'),
+  calcPercentInput: document.getElementById('calc-percent-input'),
+  calcPercentResult: document.getElementById('calc-percent-result'),
+  calcLetterSelect: document.getElementById('calc-letter-select'),
+  calcLetterResult: document.getElementById('calc-letter-result')
 };
 
 // -------------------------------------------------------------
@@ -180,6 +241,7 @@ function loadState() {
       if (!state.categories) state.categories = [...PRESETS['fcu-standard'].categories];
       if (!state.totalTargetCredits) state.totalTargetCredits = 128;
       if (!state.theme) state.theme = 'dark';
+      if (!state.gpaScale) state.gpaScale = '4.3';
     } catch (e) {
       console.error('讀取存檔失敗，還原預設範本', e);
       applyPreset('fcu-standard', false);
@@ -215,13 +277,20 @@ function applyPreset(presetKey, shouldNotify = true) {
 // 計算統計數據
 // -------------------------------------------------------------
 function calculateStats() {
+  const scale = state.gpaScale || '4.3';
   const stats = {
     totalTarget: state.totalTargetCredits,
     earnedTotal: 0,
     completed: 0,
     inprogress: 0,
     planned: 0,
-    categoryBreakdown: {}
+    categoryBreakdown: {},
+    
+    // GPA 新增統計項
+    gpaCumulative: 0.00,
+    totalGpaCredits: 0,
+    weightedGpaPoints: 0,
+    semesterStats: {}
   };
 
   // 初始化各類別累計
@@ -237,20 +306,51 @@ function calculateStats() {
   state.courses.forEach(course => {
     const cred = parseFloat(course.credits) || 0;
     const catId = course.categoryId;
+    const sem = course.semester;
     
-    // 計算全域狀態
+    // 初始化學期統計
+    if (!stats.semesterStats[sem]) {
+      stats.semesterStats[sem] = {
+        totalCredits: 0,
+        gradedCredits: 0,
+        passedCredits: 0,
+        weightedPoints: 0,
+        weightedPercentage: 0
+      };
+    }
+    
+    // 不管修課狀態，只要規劃在該學期，就計入該期規劃總學分
+    stats.semesterStats[sem].totalCredits += cred;
+    
+    // 計算全域狀態與及格判定
+    let isPass = true;
     if (course.status === 'completed') {
-      stats.completed += cred;
-      stats.earnedTotal += cred; // 已通過計入已取得學分
+      // 學分及格判定：
+      // 如果有輸入成績，百分制需 >= 60 或等級制非 D/F
+      if (course.gradeType === 'percentage' && course.gradeValue !== undefined && course.gradeValue !== '') {
+        const val = parseFloat(course.gradeValue);
+        isPass = val >= 60;
+      } else if (course.gradeType === 'letter' && course.gradeValue) {
+        const scaleInfo = getGradeScaleByLetter(course.gradeValue);
+        isPass = scaleInfo ? scaleInfo.pass : true;
+      }
+      
+      if (isPass) {
+        stats.completed += cred;
+        stats.earnedTotal += cred; // 已通過及格計入畢業學分
+        stats.semesterStats[sem].passedCredits += cred;
+      } else {
+        // 不及格的已修完課程，學分為0，但計入學期規劃中與 GPA 因子
+      }
     } else if (course.status === 'inprogress') {
       stats.inprogress += cred;
     } else if (course.status === 'planned') {
       stats.planned += cred;
     }
 
-    // 計算分類學分
+    // 計算分類學分 (僅加總及格的 completed)
     if (stats.categoryBreakdown[catId]) {
-      if (course.status === 'completed') {
+      if (course.status === 'completed' && isPass) {
         stats.categoryBreakdown[catId].completed += cred;
       } else if (course.status === 'inprogress') {
         stats.categoryBreakdown[catId].inprogress += cred;
@@ -258,7 +358,37 @@ function calculateStats() {
         stats.categoryBreakdown[catId].planned += cred;
       }
     }
+
+    // GPA 計算累計 (僅針對已完成 completed 且計分的課程)
+    if (course.status === 'completed' && course.gradeType !== 'none' && course.gradeType !== undefined) {
+      const gpaPoints = getGPAByGrade(course.gradeType, course.gradeValue, scale);
+      let percentageScore = 0;
+      if (course.gradeType === 'percentage') {
+        percentageScore = parseFloat(course.gradeValue) || 0;
+      } else if (course.gradeType === 'letter') {
+        const scaleInfo = getGradeScaleByLetter(course.gradeValue);
+        percentageScore = scaleInfo ? scaleInfo.midpoint : 0;
+      }
+      
+      if (course.gradeValue !== undefined && course.gradeValue !== '') {
+        // 全域 GPA 加權
+        stats.totalGpaCredits += cred;
+        stats.weightedGpaPoints += (cred * gpaPoints);
+        
+        // 單學期 GPA 加權
+        stats.semesterStats[sem].gradedCredits += cred;
+        stats.semesterStats[sem].weightedPoints += (cred * gpaPoints);
+        stats.semesterStats[sem].weightedPercentage += (cred * percentageScore);
+      }
+    }
   });
+
+  // 計算累積 GPA
+  if (stats.totalGpaCredits > 0) {
+    stats.gpaCumulative = stats.weightedGpaPoints / stats.totalGpaCredits;
+  } else {
+    stats.gpaCumulative = 0.00;
+  }
 
   return stats;
 }
@@ -286,6 +416,64 @@ function renderOverview(stats) {
   DOM.statCompletedCredits.textContent = stats.completed;
   DOM.statInprogressCredits.textContent = stats.inprogress;
   DOM.statPlannedCredits.textContent = stats.planned;
+  
+  // 同步渲染 GPA 儀表板
+  renderGPADashboard(stats);
+}
+
+// 新增 1.1. 渲染 GPA 深度分析儀表板
+function renderGPADashboard(stats) {
+  // 累積 GPA 顯示
+  DOM.gpaCumulativeVal.textContent = stats.gpaCumulative.toFixed(2);
+  
+  // 累積學分加總細項
+  DOM.gpaCompletedCredits.textContent = `${stats.completed} 學分`;
+  DOM.gpaInprogressCredits.textContent = `${stats.inprogress} 學分`;
+  DOM.gpaPlannedCredits.textContent = `${stats.planned} 學分`;
+  
+  // 雙軌制按鈕 active 樣式切換
+  if (state.gpaScale === '4.3') {
+    DOM.btnScale43.classList.add('active');
+    DOM.btnScale40.classList.remove('active');
+  } else {
+    DOM.btnScale43.classList.remove('active');
+    DOM.btnScale40.classList.add('active');
+  }
+  
+  // 渲染學期 GPA 列表
+  DOM.semesterGpaBody.innerHTML = '';
+  
+  // 取得排序後的學期
+  const semKeys = Object.keys(stats.semesterStats);
+  semKeys.sort((a, b) => {
+    const [yA, sA] = a.split('-').map(Number);
+    const [yB, sB] = b.split('-').map(Number);
+    if (yA !== yB) return yA - yB;
+    return sA - sB;
+  });
+  
+  if (semKeys.length === 0) {
+    DOM.semesterGpaBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">尚未規劃任何學期課程</td></tr>';
+  } else {
+    semKeys.forEach(sem => {
+      const semStat = stats.semesterStats[sem];
+      const semGpa = semStat.gradedCredits > 0 ? (semStat.weightedPoints / semStat.gradedCredits) : 0;
+      const semAvgScore = semStat.gradedCredits > 0 ? Math.round(semStat.weightedPercentage / semStat.gradedCredits) : 0;
+      
+      const semLabel = formatSemesterLabel(sem);
+      
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><strong>${semLabel}</strong></td>
+        <td>${semStat.totalCredits} 學分</td>
+        <td>${semStat.gradedCredits} 學分</td>
+        <td class="text-success">${semStat.passedCredits} 學分</td>
+        <td>${semStat.gradedCredits > 0 ? `${semAvgScore} 分` : '<span class="text-muted">-</span>'}</td>
+        <td><strong class="text-primary">${semStat.gradedCredits > 0 ? semGpa.toFixed(2) : '<span class="text-muted">-</span>'}</strong></td>
+      `;
+      DOM.semesterGpaBody.appendChild(row);
+    });
+  }
 }
 
 // 2. 渲染非學分門檻指標
@@ -430,6 +618,9 @@ function renderSemesterGrid() {
   // 取得篩選學期
   const filterSem = DOM.filterSemester.value;
 
+  // 重新進行統計計算，獲取最新的學期 GPA
+  const stats = calculateStats();
+
   // 找出所有存在課程的學期 + 預載標準大一到大四的常用學期
   const standardSemesters = ['110-1', '110-2', '111-1', '111-2', '112-1', '112-2', '113-1', '113-2', '114-1', '114-2'];
   const activeSemesters = [...new Set([...standardSemesters, ...state.courses.map(c => c.semester)])];
@@ -456,7 +647,17 @@ function renderSemesterGrid() {
       const cr = parseFloat(c.credits) || 0;
       semTotalCredits += cr;
       if (c.status === 'completed') {
-        semCompletedCredits += cr;
+        // 及格判斷
+        let isPass = true;
+        if (c.gradeType === 'percentage' && c.gradeValue !== undefined && c.gradeValue !== '') {
+          isPass = parseFloat(c.gradeValue) >= 60;
+        } else if (c.gradeType === 'letter' && c.gradeValue) {
+          const scaleInfo = getGradeScaleByLetter(c.gradeValue);
+          isPass = scaleInfo ? scaleInfo.pass : true;
+        }
+        if (isPass) {
+          semCompletedCredits += cr;
+        }
       }
     });
 
@@ -481,12 +682,20 @@ function renderSemesterGrid() {
       semCard.classList.add(loadClass);
     }
 
+    // 計算該單期 GPA
+    const semStat = stats.semesterStats[sem] || { gradedCredits: 0, weightedPoints: 0 };
+    const semGpa = semStat.gradedCredits > 0 ? (semStat.weightedPoints / semStat.gradedCredits) : 0;
+    const gpaBadgeHtml = semStat.gradedCredits > 0 ? `<span class="semester-gpa-badge" title="單期學業平均表現">GPA: ${semGpa.toFixed(2)}</span>` : '';
+
     const semLabel = formatSemesterLabel(sem);
     semCard.innerHTML = `
       <div class="semester-header">
         <div class="flex-between">
           <span class="semester-title">${semLabel}</span>
-          ${loadWarning}
+          <div style="display: flex; gap: 6px; align-items: center;">
+            ${gpaBadgeHtml}
+            ${loadWarning}
+          </div>
         </div>
         <div class="semester-stats">
           <span>總規劃: <strong>${semTotalCredits}</strong> 學分</span>
@@ -507,6 +716,23 @@ function renderSemesterGrid() {
         const catColor = cat ? cat.color : '#cccccc';
         const catName = cat ? cat.name : '未分類';
         
+        // 課程成績徽章
+        let gradeBadge = '';
+        if (course.status === 'completed' && course.gradeType !== 'none' && course.gradeType !== undefined && course.gradeValue !== undefined && course.gradeValue !== '') {
+          let isPass = true;
+          let displayVal = '';
+          if (course.gradeType === 'percentage') {
+            isPass = parseFloat(course.gradeValue) >= 60;
+            displayVal = `${course.gradeValue}分`;
+          } else if (course.gradeType === 'letter') {
+            const scaleInfo = getGradeScaleByLetter(course.gradeValue);
+            isPass = scaleInfo ? scaleInfo.pass : true;
+            displayVal = course.gradeValue;
+          }
+          const badgeClass = isPass ? 'passed' : 'failed';
+          gradeBadge = `<span class="course-grade-badge ${badgeClass}">${displayVal}</span>`;
+        }
+
         const pill = document.createElement('div');
         pill.className = 'course-item-pill';
         pill.style.borderLeftColor = catColor;
@@ -516,6 +742,7 @@ function renderSemesterGrid() {
             <div class="course-item-meta">
               <span class="course-status-dot ${course.status}"></span>
               <span>${course.credits} 學分</span>
+              ${gradeBadge}
               <span>•</span>
               <span style="color: ${catColor}; font-weight: 500;">${escapeHTML(catName)}</span>
             </div>
@@ -734,6 +961,27 @@ function handleCourseSubmit(e) {
     return;
   }
 
+  // 讀取成績登錄欄位
+  const gradeType = DOM.courseGradeType.value;
+  let gradeValue = undefined;
+  if (status === 'completed') {
+    if (gradeType === 'percentage') {
+      const gVal = parseFloat(DOM.courseGradePercentage.value);
+      if (isNaN(gVal) || gVal < 0 || gVal > 100) {
+        showToast('請輸入學科百分制成績 (0-100)！', 'danger');
+        return;
+      }
+      gradeValue = gVal;
+    } else if (gradeType === 'letter') {
+      const gVal = DOM.courseGradeLetter.value;
+      if (!gVal) {
+        showToast('請選擇等級制等第！', 'danger');
+        return;
+      }
+      gradeValue = gVal;
+    }
+  }
+
   if (id) {
     // 編輯課程
     const course = state.courses.find(c => c.id === id);
@@ -743,6 +991,8 @@ function handleCourseSubmit(e) {
       course.credits = credits;
       course.semester = semester;
       course.status = status;
+      course.gradeType = gradeType;
+      course.gradeValue = gradeValue;
       showToast(`已更新課程「${name}」資訊！`, 'success');
     }
   } else {
@@ -753,7 +1003,9 @@ function handleCourseSubmit(e) {
       categoryId: catId,
       credits,
       semester,
-      status
+      status,
+      gradeType,
+      gradeValue
     };
     state.courses.push(newCourse);
     showToast(`已成功新增課程「${name}」！`, 'success');
@@ -774,6 +1026,22 @@ function handleEditCourse(courseId) {
   DOM.courseCredits.value = course.credits;
   DOM.courseSemester.value = course.semester;
   DOM.courseStatus.value = course.status;
+  
+  // 成績還原填寫
+  DOM.courseGradeType.value = course.gradeType || 'none';
+  if (course.gradeType === 'percentage') {
+    DOM.courseGradePercentage.value = course.gradeValue !== undefined ? course.gradeValue : '';
+    DOM.courseGradeLetter.value = '';
+  } else if (course.gradeType === 'letter') {
+    DOM.courseGradePercentage.value = '';
+    DOM.courseGradeLetter.value = course.gradeValue || '';
+  } else {
+    DOM.courseGradePercentage.value = '';
+    DOM.courseGradeLetter.value = '';
+  }
+  
+  toggleGradeInputArea();
+  toggleGradeValueFields();
   
   DOM.btnSubmitCourse.textContent = '更新課程';
   DOM.btnCancelEdit.style.display = 'block';
@@ -802,6 +1070,11 @@ function resetCourseForm() {
   DOM.courseFormTitle.textContent = '新增修課紀錄';
   DOM.courseId.value = '';
   DOM.courseForm.reset();
+  DOM.courseGradeType.value = 'none';
+  DOM.courseGradePercentage.value = '';
+  DOM.courseGradeLetter.value = '';
+  toggleGradeInputArea();
+  toggleGradeValueFields();
   DOM.btnSubmitCourse.textContent = '儲存課程';
   DOM.btnCancelEdit.style.display = 'none';
 }
@@ -977,7 +1250,108 @@ function initApp() {
   DOM.fileImport.addEventListener('change', handleImportFile);
   DOM.btnReset.addEventListener('click', handleReset);
   
-  // 防止 Modal 外點擊未關閉 (可選，這裡使用內建 HTML 關閉動作或按鈕)
+  // 課程表單成績顯示動態綁定
+  DOM.courseStatus.addEventListener('change', toggleGradeInputArea);
+  DOM.courseGradeType.addEventListener('change', toggleGradeValueFields);
+  DOM.courseGradePercentage.addEventListener('input', updateLiveGradePreview);
+  DOM.courseGradeLetter.addEventListener('change', updateLiveGradePreview);
+
+  // GPA 雙制式切換
+  DOM.btnScale43.addEventListener('click', () => {
+    state.gpaScale = '4.3';
+    saveState();
+  });
+  DOM.btnScale40.addEventListener('click', () => {
+    state.gpaScale = '4.0';
+    saveState();
+  });
+
+  // 初始化成績快捷換算對照器
+  initGPAConverterUtility();
+}
+
+// -------------------------------------------------------------
+// GPA 動態表單與對照工具事件處理輔助函式
+// -------------------------------------------------------------
+function toggleGradeInputArea() {
+  if (DOM.courseStatus.value === 'completed') {
+    DOM.gradeInputArea.style.display = 'block';
+  } else {
+    DOM.gradeInputArea.style.display = 'none';
+  }
+}
+
+function toggleGradeValueFields() {
+  const type = DOM.courseGradeType.value;
+  if (type === 'none') {
+    DOM.gradeValPercentageGroup.style.display = 'none';
+    DOM.gradeValLetterGroup.style.display = 'none';
+    DOM.gradeLivePreview.style.display = 'none';
+  } else if (type === 'percentage') {
+    DOM.gradeValPercentageGroup.style.display = 'block';
+    DOM.gradeValLetterGroup.style.display = 'none';
+    DOM.gradeLivePreview.style.display = 'block';
+    updateLiveGradePreview();
+  } else if (type === 'letter') {
+    DOM.gradeValPercentageGroup.style.display = 'none';
+    DOM.gradeValLetterGroup.style.display = 'block';
+    DOM.gradeLivePreview.style.display = 'block';
+    updateLiveGradePreview();
+  }
+}
+
+function updateLiveGradePreview() {
+  const type = DOM.courseGradeType.value;
+  let text = '即時換算預覽：<span class="grade-preview-highlight">請輸入分數</span>';
+  
+  if (type === 'percentage') {
+    const val = parseFloat(DOM.courseGradePercentage.value);
+    if (!isNaN(val) && val >= 0 && val <= 100) {
+      const scaleInfo = getGradeScaleByPercentage(val);
+      if (scaleInfo) {
+        text = `即時換算等第：<span class="grade-preview-highlight">${scaleInfo.letter}</span> | GPA：<span class="grade-preview-highlight">${scaleInfo.gpa43.toFixed(1)}</span> (4.3制) / <span class="grade-preview-highlight">${scaleInfo.gpa40.toFixed(1)}</span> (4.0制) | ${scaleInfo.pass ? '<span class="text-success" style="font-weight:700;">及格</span>' : '<span class="text-danger" style="font-weight:700;">不及格</span>'}`;
+      }
+    }
+  } else if (type === 'letter') {
+    const val = DOM.courseGradeLetter.value;
+    if (val) {
+      const scaleInfo = getGradeScaleByLetter(val);
+      if (scaleInfo) {
+        text = `對照分數區間：<span class="grade-preview-highlight">${scaleInfo.min}-${scaleInfo.max}分</span> (基準分: ${scaleInfo.midpoint}分) | GPA：<span class="grade-preview-highlight">${scaleInfo.gpa43.toFixed(1)}</span> (4.3制) / <span class="grade-preview-highlight">${scaleInfo.gpa40.toFixed(1)}</span> (4.0制) | ${scaleInfo.pass ? '<span class="text-success" style="font-weight:700;">及格</span>' : '<span class="text-danger" style="font-weight:700;">不及格</span>'}`;
+      }
+    }
+  }
+  DOM.gradeLivePreview.innerHTML = text;
+}
+
+function initGPAConverterUtility() {
+  DOM.calcPercentInput.addEventListener('input', (e) => {
+    const val = parseFloat(e.target.value);
+    if (!isNaN(val) && val >= 0 && val <= 100) {
+      const scaleInfo = getGradeScaleByPercentage(val);
+      if (scaleInfo) {
+        DOM.calcPercentResult.innerHTML = `等第: <strong class="text-primary">${scaleInfo.letter}</strong> | GPA: <strong>${scaleInfo.gpa43.toFixed(1)}</strong> (4.3) / <strong>${scaleInfo.gpa40.toFixed(1)}</strong> (4.0)`;
+      } else {
+        DOM.calcPercentResult.textContent = '等第: - | GPA: -';
+      }
+    } else {
+      DOM.calcPercentResult.textContent = '等第: - | GPA: -';
+    }
+  });
+
+  DOM.calcLetterSelect.addEventListener('change', (e) => {
+    const val = e.target.value;
+    if (val) {
+      const scaleInfo = getGradeScaleByLetter(val);
+      if (scaleInfo) {
+        DOM.calcLetterResult.innerHTML = `基準分: <strong>${scaleInfo.midpoint}分</strong> | GPA: <strong>${scaleInfo.gpa43.toFixed(1)}</strong> (4.3) / <strong>${scaleInfo.gpa40.toFixed(1)}</strong> (4.0)`;
+      } else {
+        DOM.calcLetterResult.textContent = '基準分: - | GPA: -';
+      }
+    } else {
+      DOM.calcLetterResult.textContent = '基準分: - | GPA: -';
+    }
+  });
 }
 
 // 啟動 App

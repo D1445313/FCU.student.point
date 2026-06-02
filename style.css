@@ -1325,3 +1325,276 @@ input[type="color"] {
     text-align: center;
   }
 }
+
+/* -------------------------------------------------------------
+ * 自動化試算引擎與 GPA 整合樣式
+ * ------------------------------------------------------------- */
+.gpa-card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.gpa-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.gpa-scale-toggle {
+  display: flex;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.gpa-scale-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-family);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gpa-scale-btn.active {
+  background: var(--primary-gradient);
+  color: #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+
+.gpa-analytics-display {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  justify-content: space-around;
+  flex-wrap: wrap;
+}
+
+.light-theme .gpa-analytics-display {
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.gpa-big-num-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+}
+
+.gpa-big-num {
+  font-size: 3rem;
+  font-weight: 900;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+  font-family: 'Outfit', sans-serif;
+  filter: drop-shadow(0 2px 8px var(--primary-glow));
+}
+
+.gpa-big-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-top: 6px;
+}
+
+.gpa-credits-sum {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-grow: 1;
+}
+
+.gpa-credit-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed var(--border-color);
+  padding-bottom: 6px;
+}
+
+.gpa-credit-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.gpa-credit-label {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+.gpa-credit-val {
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-family: 'Outfit', sans-serif;
+}
+
+/* 成績輸入表單區域樣式 */
+.grade-input-section {
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px dashed var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: fadeIn 0.3s ease;
+}
+
+.light-theme .grade-input-section {
+  background: rgba(15, 23, 42, 0.01);
+}
+
+.grade-preview-box {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  border-left: 3px solid var(--primary-color);
+}
+
+.light-theme .grade-preview-box {
+  background: rgba(15, 23, 42, 0.03);
+}
+
+.grade-preview-highlight {
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+/* 課程小卡成績角標 */
+.course-grade-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: 'Outfit', sans-serif;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  margin-left: 4px;
+}
+
+.light-theme .course-grade-badge {
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.course-grade-badge.passed {
+  color: var(--success-color);
+  border-color: rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.course-grade-badge.failed {
+  color: var(--danger-color);
+  border-color: rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+/* 學期卡片單期 GPA 標記 */
+.semester-gpa-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: 'Outfit', sans-serif;
+  color: var(--primary-color);
+  background: rgba(99, 102, 241, 0.1);
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.light-theme .semester-gpa-badge {
+  background: rgba(79, 70, 229, 0.08);
+}
+
+/* 成績轉換工具樣式 */
+.converter-utility {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.converter-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.converter-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.converter-box {
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.converter-box label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.converter-box input, .converter-box select {
+  padding: 4px 8px;
+  font-size: 0.88rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+
+.converter-result {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  min-height: 18px;
+}
+
+/* 學期 GPA 分析列表樣式 */
+.semester-gpa-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.semester-gpa-table th, 
+.semester-gpa-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+}
+
+.semester-gpa-table th {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.semester-gpa-table tbody tr:last-child td {
+  border-bottom: none;
+}
