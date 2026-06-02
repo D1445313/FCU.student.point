@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}學分分類錄入 - 逢甲大學學業進度與時間管理整合系統{% endblock %}
+
+{% block content %}
+<div class="import-layout">
+    <!-- 左側：手動新增課程表單 -->
+    <div class="glass-card">
+        <h3 class="card-title">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+            手動新增課程
+        </h3>
+        
+        <form action="{{ url_for('courses.add_course') }}" method="POST" class="form-grid">
+            <!-- 學期 -->
+            <div class="form-group">
+                <label for="semester">學期 <span style="color: #ef4444;">*</span></label>
+                <input type="text" id="semester" name="semester" placeholder="例如：112-1" required value="112-2">
+            </div>
+
+            <!-- 課程名稱 -->
+            <div class="form-group">
+                <label for="course_name">課程名稱 <span style="color: #ef4444;">*</span></label>
+                <input type="text" id="course_name" name="course_name" placeholder="例如：演算法" required>
+            </div>
+
+            <!-- 學分 -->
+            <div class="form-group">
+                <label for="credits">學分數 <span style="color: #ef4444;">*</span></label>
+                <input type="number" id="credits" name="credits" min="1" max="10" placeholder="例如：3" required>
+            </div>
+
+            <!-- 成績 -->
+            <div class="form-group">
+                <label for="grade">分數/等第 (選填)</label>
+                <input type="text" id="grade" name="grade" placeholder="0-100 或 A+, B...">
+            </div>
+
+            <!-- 類別 -->
+            <div class="form-group">
+                <label for="category">課程類別 <span style="color: #ef4444;">*</span></label>
+                <select id="category" name="category" required>
+                    <option value="必修" selected>必修</option>
+                    <option value="選修">選修</option>
+                    <option value="通識">通識</option>
+                    <option value="體育">體育</option>
+                    <option value="其他">其他</option>
+                </select>
+            </div>
+
+            <!-- 次類別/通識領域 -->
+            <div class="form-group">
+                <label for="subcategory">次類別/領域 (選填)</label>
+                <input type="text" id="subcategory" name="subcategory" placeholder="如：通識-自然、系定必修">
+            </div>
+
+            <!-- 狀態 -->
+            <div class="form-group full-width">
+                <label for="status">修課狀態 <span style="color: #ef4444;">*</span></label>
+                <select id="status" name="status" required>
+                    <option value="已完成" selected>已完成 (已取得學期成績)</option>
+                    <option value="修習中">修習中 (本學期修讀中)</option>
+                    <option value="待修習">待修習 (未來規劃選修)</option>
+                </select>
+            </div>
+
+            <div class="form-group full-width" style="margin-top: 10px;">
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    儲存課程
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 右側：批次匯入卡片 (CSV / FCU 歷年成績文字貼上) -->
+    <div class="glass-card" style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <div>
+            <h3 class="card-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                </svg>
+                批次匯入課程
+            </h3>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.25rem;">
+                支援拖曳 CSV 檔案，或直接貼上 MyFCU 歷年成績網頁文字。系統將自動進行智慧解析。
+            </p>
+        </div>
+
+        <!-- 拖放上傳區 -->
+        <div class="drag-drop-zone" id="dragDropZone">
+            <div class="drag-drop-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+            </div>
+            <p style="font-weight: 600; font-size: 0.95rem;">點擊此處或拖曳 CSV 檔案至此</p>
+            <p style="color: var(--text-muted); font-size: 0.75rem;">支援 CSV 欄位：學期, 課程名稱, 學分, 成績, 類別, 次類別</p>
+            <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+        </div>
+
+        <div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; position: relative;">
+            <span style="background: var(--bg-dark-base); padding: 0 10px; z-index: 1; position: relative;">或直接貼上歷年成績文字</span>
+            <div style="position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: var(--card-border); z-index: 0;"></div>
+        </div>
+
+        <!-- 歷年成績文字貼上解析 -->
+        <div class="form-group">
+            <textarea class="import-textarea" id="fcuPasteArea" placeholder="直接複製 MyFCU 的成績表格，貼到這裡。&#10;範例：&#10;111-1   程式設計(一)   3   必修   85&#10;111-2   通識-歷史與文明   2   通識   A"></textarea>
+            <button type="button" class="btn btn-secondary" onclick="parseFCUPasteText()" style="width: 100%; margin-top: 10px;">
+                智慧解析貼上文字
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 底部：批次解析預覽表格區塊 -->
+<section class="glass-card preview-section" id="previewSection" style="display: none; margin-top: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3 class="card-title" style="margin-bottom: 0;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+            </svg>
+            待匯入課程預覽確認
+        </h3>
+        <p style="color: var(--text-secondary); font-size: 0.85rem;">您可以在表格中直接修改或刪除個別欄位，確認無誤後點擊匯入</p>
+    </div>
+
+    <div class="table-wrapper" style="margin-bottom: 1.5rem;">
+        <table>
+            <thead>
+                <tr>
+                    <th>學期</th>
+                    <th>課程名稱</th>
+                    <th>學分</th>
+                    <th>成績</th>
+                    <th>類別</th>
+                    <th>次類別/領域</th>
+                    <th>修課狀態</th>
+                    <th style="width: 60px;">操作</th>
+                </tr>
+            </thead>
+            <tbody id="previewTableBody">
+                <!-- 由 parser.js 動態渲染 -->
+            </tbody>
+        </table>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('previewSection').style.display='none'">
+            取消
+        </button>
+        <button type="button" class="btn btn-success" id="confirmImportBtn" onclick="submitBatchImport()">
+            確認匯入並寫入資料庫
+        </button>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<!-- 載入解析匯入的核心 JS -->
+<script src="{{ url_for('static', filename='js/parser.js') }}"></script>
+{% endblock %}
