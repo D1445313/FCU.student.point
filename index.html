@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>逢甲大學學分預警與視覺化分析系統</title>
+    
+    <!-- Google Fonts: Outfit (English) & Noto Sans TC (Chinese) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons for high fidelity visuals -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js CDN for interactive visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Local Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 1. 側邊導覽列 Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="fa-solid fa-graduation-cap brand-icon"></i>
+                <div class="brand-text">
+                    <h2>FCU Tracker</h2>
+                    <span>學業進度與預警系統</span>
+                </div>
+            </div>
+            
+            <!-- 學生個人資訊簡片 (Dynamic) -->
+            <div class="student-profile-card">
+                <div class="profile-avatar">
+                    <i class="fa-solid fa-user-graduate"></i>
+                </div>
+                <div class="profile-info">
+                    <h3 id="sidebar-student-name">林逢甲</h3>
+                    <p id="sidebar-student-dept">資訊工程學系</p>
+                    <span id="sidebar-student-id" class="badge">D1101234</span>
+                </div>
+            </div>
+            
+            <!-- 導覽選單 -->
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-item active" data-tab="dashboard">
+                        <a href="#dashboard"><i class="fa-solid fa-chart-pie"></i><span>儀表板首頁</span></a>
+                    </li>
+                    <li class="nav-item" data-tab="credit-analyzer">
+                        <a href="#credit-analyzer"><i class="fa-solid fa-chart-simple"></i><span>學分深度分析</span></a>
+                    </li>
+                    <li class="nav-item" data-tab="warning-center">
+                        <a href="#warning-center">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>預警與門檻</span>
+                            <span class="warning-badge-pulse" id="nav-warning-dot"></span>
+                        </a>
+                    </li>
+                    <li class="nav-item" data-tab="time-manager">
+                        <a href="#time-manager"><i class="fa-solid fa-clock-rotate-left"></i><span>時間與壓力管理</span></a>
+                    </li>
+                    <li class="nav-item" data-tab="course-planner">
+                        <a href="#course-planner"><i class="fa-solid fa-calendar-check"></i><span>模擬排課計畫</span></a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- 系統模式與數據切換控制區 -->
+            <div class="sidebar-footer">
+                <!-- 亮暗色切換 -->
+                <div class="theme-toggle-container">
+                    <span><i class="fa-solid fa-sun"></i> 亮色</span>
+                    <label class="switch">
+                        <input type="checkbox" id="theme-toggle" checked>
+                        <span class="slider round"></span>
+                    </label>
+                    <span><i class="fa-solid fa-moon"></i> 暗色</span>
+                </div>
+                
+                <!-- 一鍵切換 Demo 數據 -->
+                <div class="demo-selector-container">
+                    <label for="demo-select"><i class="fa-solid fa-database"></i> 載入學生 Demo</label>
+                    <select id="demo-select">
+                        <option value="studentA">林逢甲 (資工學霸)</option>
+                        <option value="studentB">陳大里 (企管二一危機)</option>
+                        <option value="studentC">張西屯 (電機延畢邊緣)</option>
+                    </select>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- 2. 主內容展示區 Main Content -->
+        <main class="main-content">
+            <!-- 頁首 Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <h1 id="page-title">儀表板首頁</h1>
+                    <p id="header-date">2026年5月27日 星期三</p>
+                </div>
+                <div class="header-right">
+                    <!-- 綜合危機狀態標籤 (動態變化) -->
+                    <div id="overall-status-badge" class="overall-status status-safe">
+                        <span class="status-dot"></span>
+                        <span id="overall-status-text">學業安全</span>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- 3. 五大分頁標籤內容 -->
+            <!-- TAB 1: 儀表板首頁 -->
+            <div id="tab-dashboard" class="tab-panel active">
+                <!-- 數據快捷卡片 row -->
+                <div class="stats-grid">
+                    <div class="stat-card glass-card">
+                        <div class="stat-icon icon-primary"><i class="fa-solid fa-chart-line"></i></div>
+                        <div class="stat-content">
+                            <h3>平均 GPA</h3>
+                            <p class="stat-number" id="dash-gpa">3.92</p>
+                            <span class="stat-trend trend-up"><i class="fa-solid fa-arrow-trend-up"></i> 學業表現優異</span>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-card">
+                        <div class="stat-icon icon-success"><i class="fa-solid fa-award"></i></div>
+                        <div class="stat-content">
+                            <h3>已修畢總學分</h3>
+                            <p class="stat-number" id="dash-credits">110 <span class="stat-total">/ 128</span></p>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" id="dash-credit-progress" style="width: 85.9%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-card">
+                        <div class="stat-icon icon-warning"><i class="fa-solid fa-list-check"></i></div>
+                        <div class="stat-content">
+                            <h3>待繳交作業/測驗</h3>
+                            <p class="stat-number" id="dash-homework-count">0 <span class="stat-unit">件</span></p>
+                            <span class="stat-subtext" id="dash-homework-sub">所有進度正常</span>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-card">
+                        <div class="stat-icon icon-danger"><i class="fa-solid fa-fire"></i></div>
+                        <div class="stat-content">
+                            <h3>學業壓力指數</h3>
+                            <p class="stat-number" id="dash-pressure-index">10%</p>
+                            <div class="pressure-bar-container">
+                                <div class="pressure-bar" id="dash-pressure-progress" style="width: 10%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 主圖表網格 -->
+                <div class="dashboard-grid">
+                    <!-- 左：學分比例環形圖 -->
+                    <div class="grid-item glass-card card-chart-half">
+                        <div class="card-header">
+                            <h2><i class="fa-solid fa-chart-pie text-color-fcu"></i> 學分分類比例分析</h2>
+                            <p class="card-subheader">已修學分 vs. 畢業缺口</p>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="creditPieChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- 右：GPA 歷年趨勢折線圖 -->
+                    <div class="grid-item glass-card card-chart-half">
+                        <div class="card-header">
+                            <h2><i class="fa-solid fa-chart-line text-color-fcu"></i> GPA 歷學期變化趨勢</h2>
+                            <p class="card-subheader">歷年學期平均成績追蹤</p>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="gpaLineChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- 底：學業預警與關鍵危機通報 (全寬) -->
+                    <div class="grid-item glass-card card-full">
+                        <div class="card-header header-with-badge">
+                            <h2><i class="fa-solid fa-triangle-exclamation text-color-danger"></i> 逢甲學分危機預警中心</h2>
+                            <span class="badge badge-pulse" id="alert-summary-badge">0 個警訊</span>
+                        </div>
+                        <div class="warning-alerts-container" id="dashboard-warnings-list">
+                            <!-- 動態渲染預警訊息 -->
+                            <div class="empty-warning-state">
+                                <i class="fa-solid fa-circle-check text-success"></i>
+                                <p>太棒了！目前沒有偵測到任何學分、二一或延畢危機。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TAB 2: 學分深度分析 -->
+            <div id="tab-credit-analyzer" class="tab-panel">
+                <div class="detail-container">
+                    <!-- 上方：三大類別學分細部進度條 -->
+                    <div class="detail-card glass-card">
+                        <h2><i class="fa-solid fa-sliders text-color-fcu"></i> 畢業指標細部分類進度</h2>
+                        <p class="section-desc">根據逢甲大學規定，須同時滿足專業必修、專業選修及通識教育學分方可畢業。</p>
+                        
+                        <div class="analyzer-progress-list">
+                            <!-- 專業必修 -->
+                            <div class="progress-group">
+                                <div class="progress-labels">
+                                    <span class="label-name">專業必修 (Required Courses)</span>
+                                    <span class="label-values" id="analyzer-req-text">64 / 72 學分</span>
+                                </div>
+                                <div class="progress-bar-large">
+                                    <div class="progress-fill fill-required" id="analyzer-req-fill" style="width: 88.8%"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- 專業選修 -->
+                            <div class="progress-group">
+                                <div class="progress-labels">
+                                    <span class="label-name">專業選修 (Elective Courses)</span>
+                                    <span class="label-values" id="analyzer-ele-text">22 / 28 學分</span>
+                                </div>
+                                <div class="progress-bar-large">
+                                    <div class="progress-fill fill-elective" id="analyzer-ele-fill" style="width: 78.5%"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- 通識課程 -->
+                            <div class="progress-group">
+                                <div class="progress-labels">
+                                    <span class="label-name">通識教育 (General Education)</span>
+                                    <span class="label-values" id="analyzer-gen-text">26 / 28 學分</span>
+                                </div>
+                                <div class="progress-bar-large">
+                                    <div class="progress-fill fill-general" id="analyzer-gen-fill" style="width: 92.8%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="analyzer-columns">
+                        <!-- 左：通識教育四大領域檢核 -->
+                        <div class="glass-card col-half">
+                            <h2><i class="fa-solid fa-graduation-cap text-color-fcu"></i> 通識教育領域檢核表</h2>
+                            <p class="section-desc">逢甲大學通識包含核心必修國英文，與人文、社會、自然、生命教育領域。</p>
+                            
+                            <ul class="general-ed-list" id="gen-ed-checklist">
+                                <li>
+                                    <div class="check-left"><i class="fa-solid fa-circle-check text-success"></i><span>基礎國文 (必修)</span></div>
+                                    <span class="badge badge-success">4 學分 通過</span>
+                                </li>
+                                <li>
+                                    <div class="check-left"><i class="fa-solid fa-circle-check text-success"></i><span>大一、大二英文 (必修)</span></div>
+                                    <span class="badge badge-success">8 學分 通過</span>
+                                </li>
+                                <li>
+                                    <div class="check-left"><i class="fa-solid fa-circle-check text-success"></i><span>人文學科領域</span></div>
+                                    <span class="badge badge-success">4 學分 通過</span>
+                                </li>
+                                <li>
+                                    <div class="check-left"><i class="fa-solid fa-circle-check text-success"></i><span>社會科學領域</span></div>
+                                    <span class="badge badge-success">4 學分 通過</span>
+                                </li>
+                                <li>
+                                    <div class="check-left"><i class="fa-solid fa-circle-check text-success"></i><span>自然科學領域</span></div>
+                                    <span class="badge badge-success">4 學分 通過</span>
+                                </li>
+                                <li>
+                                    <div class="check-left"><i class="fa-solid fa-circle-xmark text-warning"></i><span>生命教育與宗教</span></div>
+                                    <span class="badge badge-warning">修習中 / 缺2學分</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <!-- 右：當前學期修課明細與成績對照 -->
+                        <div class="glass-card col-half">
+                            <h2><i class="fa-solid fa-book-open text-color-fcu"></i> 本學期修課列表與預測 GPA</h2>
+                            <p class="section-desc">可自由於「模擬排課計畫」修改本學期修課，此處將自動反應最新估計分數。</p>
+                            
+                            <div class="table-wrapper">
+                                <table class="academic-table" id="current-courses-table">
+                                    <thead>
+                                        <tr>
+                                            <th>課號</th>
+                                            <th>課程名稱</th>
+                                            <th>學分</th>
+                                            <th>類型</th>
+                                            <th>預估成績</th>
+                                            <th>狀態</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- 動態渲染 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TAB 3: 預警與畢業門檻 -->
+            <div id="tab-warning-center" class="tab-panel">
+                <div class="warning-container">
+                    <!-- 左側：逢甲非學分畢業門檻指標 -->
+                    <div class="glass-card warning-left">
+                        <h2><i class="fa-solid fa-circle-check text-color-fcu"></i> 非學分畢業門檻檢核</h2>
+                        <p class="section-desc">此為逢甲大學學生必備之畢業門檻，不計入畢業學分但若未完成將無法畢業。</p>
+                        
+                        <div class="threshold-cards">
+                            <!-- 英文門檻 -->
+                            <div class="threshold-card" id="threshold-card-english">
+                                <div class="threshold-header">
+                                    <div class="threshold-icon"><i class="fa-solid fa-language"></i></div>
+                                    <div class="threshold-meta">
+                                        <h3>外語畢業門檻</h3>
+                                        <p>多益 (TOEIC) 550 分或同等檢定</p>
+                                    </div>
+                                </div>
+                                <div class="threshold-status" id="threshold-status-english">
+                                    <span class="badge badge-success">已達標 (780分)</span>
+                                </div>
+                                <button class="btn btn-secondary btn-sm toggle-threshold-btn" data-threshold="english">
+                                    <i class="fa-solid fa-rotate"></i> 模擬切換狀態
+                                </button>
+                            </div>
+                            
+                            <!-- 服務學習一 -->
+                            <div class="threshold-card" id="threshold-card-sl1">
+                                <div class="threshold-header">
+                                    <div class="threshold-icon"><i class="fa-solid fa-hands-helping"></i></div>
+                                    <div class="threshold-meta">
+                                        <h3>服務學習 (一)</h3>
+                                        <p>大一校園服務與志工輔導</p>
+                                    </div>
+                                </div>
+                                <div class="threshold-status" id="threshold-status-sl1">
+                                    <span class="badge badge-success">已通過</span>
+                                </div>
+                                <button class="btn btn-secondary btn-sm toggle-threshold-btn" data-threshold="sl1">
+                                    <i class="fa-solid fa-rotate"></i> 模擬切換狀態
+                                </button>
+                            </div>
+                            
+                            <!-- 服務學習二 -->
+                            <div class="threshold-card" id="threshold-card-sl2">
+                                <div class="threshold-header">
+                                    <div class="threshold-icon"><i class="fa-solid fa-people-carry-box"></i></div>
+                                    <div class="threshold-meta">
+                                        <h3>服務學習 (二)</h3>
+                                        <p>專業學系社會關懷實踐</p>
+                                    </div>
+                                </div>
+                                <div class="threshold-status" id="threshold-status-sl2">
+                                    <span class="badge badge-success">已通過</span>
+                                </div>
+                                <button class="btn btn-secondary btn-sm toggle-threshold-btn" data-threshold="sl2">
+                                    <i class="fa-solid fa-rotate"></i> 模擬切換狀態
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 右側：學分危機診斷詳細報告 -->
+                    <div class="glass-card warning-right">
+                        <div class="warning-report-header">
+                            <h2><i class="fa-solid fa-shield-halved text-color-danger"></i> 逢甲學業危機自動檢測報告</h2>
+                            <div id="risk-score-badge" class="risk-score-badge">危機指數: 10/100</div>
+                        </div>
+                        <p class="section-desc">系統已根據您的歷史成績、本學期修課預估以及畢業學分缺口，進行演算法檢測。</p>
+                        
+                        <div class="diagnostic-chart-container">
+                            <div class="stress-meter-wrapper">
+                                <span class="meter-title">學業危機綜合指數</span>
+                                <div class="stress-meter-outer">
+                                    <div class="stress-meter-inner" id="warning-risk-bar" style="width: 10%;"></div>
+                                </div>
+                                <div class="stress-labels">
+                                    <span>安全 (0-20)</span>
+                                    <span>黃色警戒 (21-59)</span>
+                                    <span>學業危險 (60-100)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 警訊細節列表 -->
+                        <div class="detailed-warnings-list" id="warning-center-list">
+                            <!-- 動態置入 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TAB 4: 時間與壓力管理 -->
+            <div id="tab-time-manager" class="tab-panel">
+                <div class="time-container">
+                    <!-- 左：學習與休閒時數分析 -->
+                    <div class="time-left">
+                        <div class="glass-card">
+                            <h2><i class="fa-solid fa-chart-simple text-color-fcu"></i> 每週時間平衡分析 (小時)</h2>
+                            <p class="section-desc">分析每週投入學業研究（上課+自主學習）與休閒休養的時間比例。</p>
+                            
+                            <div class="time-inputs-grid">
+                                <div class="input-group">
+                                    <label for="study-hours-input"><i class="fa-solid fa-book text-color-fcu"></i> 每週修課+學習時數</label>
+                                    <input type="number" id="study-hours-input" value="35" min="0" max="168">
+                                </div>
+                                <div class="input-group">
+                                    <label for="leisure-hours-input"><i class="fa-solid fa-gamepad text-color-warning"></i> 每週娛樂與休閒時數</label>
+                                    <input type="number" id="leisure-hours-input" value="15" min="0" max="168">
+                                </div>
+                            </div>
+                            
+                            <div class="chart-container-small">
+                                <canvas id="timeBalanceChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- 週課表簡圖 -->
+                        <div class="glass-card weekly-schedule-card">
+                            <h2><i class="fa-solid fa-calendar-days text-color-fcu"></i> 學期每週時間區塊分配</h2>
+                            <div class="schedule-grid">
+                                <div class="schedule-header-cell">時間</div>
+                                <div class="schedule-header-cell">一</div>
+                                <div class="schedule-header-cell">二</div>
+                                <div class="schedule-header-cell">三</div>
+                                <div class="schedule-header-cell">四</div>
+                                <div class="schedule-header-cell">五</div>
+                                
+                                <div class="schedule-time-cell">上午 (08-12)</div>
+                                <div class="schedule-cell active-class">專業必修</div>
+                                <div class="schedule-cell active-class">通識課程</div>
+                                <div class="schedule-cell empty-slot">自習/空堂</div>
+                                <div class="schedule-cell active-class">專業必修</div>
+                                <div class="schedule-cell empty-slot">空堂</div>
+                                
+                                <div class="schedule-time-cell">下午 (13-17)</div>
+                                <div class="schedule-cell empty-slot">自習</div>
+                                <div class="schedule-cell active-class">專業選修</div>
+                                <div class="schedule-cell active-class">專業選修</div>
+                                <div class="schedule-cell active-class">通識必修</div>
+                                <div class="schedule-cell empty-slot">自習</div>
+                                
+                                <div class="schedule-time-cell">晚上 (18-22)</div>
+                                <div class="schedule-cell study-slot">預習複習</div>
+                                <div class="schedule-cell leisure-slot">社團活動</div>
+                                <div class="schedule-cell study-slot">程式專題</div>
+                                <div class="schedule-cell leisure-slot">個人放鬆</div>
+                                <div class="schedule-cell leisure-slot">週末狂歡</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 右：學業壓力計與作業追蹤 -->
+                    <div class="time-right glass-card">
+                        <h2><i class="fa-solid fa-circle-nodes text-color-fcu"></i> 學業壓力控制與作業進度</h2>
+                        <p class="section-desc">課業壓力受「修習學分數」與「未繳交作業/測驗數量」雙重影響。請點擊清單打勾以降低壓力值。</p>
+                        
+                        <!-- 壓力指數溫度計 -->
+                        <div class="thermometer-section">
+                            <div class="thermometer-container">
+                                <div class="thermo-stem">
+                                    <div class="thermo-fill" id="pressure-thermometer-fill" style="height: 10%">
+                                        <span class="thermo-percent" id="pressure-thermometer-text">10%</span>
+                                    </div>
+                                </div>
+                                <div class="thermo-bulb"></div>
+                            </div>
+                            <div class="pressure-description">
+                                <h3 id="pressure-status-title">壓力狀態：游刃有餘</h3>
+                                <p id="pressure-status-desc">目前學分與作業負擔輕微，時間分配極佳。請繼續保持！</p>
+                            </div>
+                        </div>
+                        
+                        <!-- 作業清單互動管理 -->
+                        <div class="todo-section">
+                            <h3><i class="fa-solid fa-list-check"></i> 待辦任務與作業清單</h3>
+                            
+                            <div class="add-todo-container">
+                                <input type="text" id="todo-input" placeholder="新增作業名稱、考試或報告...">
+                                <button class="btn btn-primary" id="add-todo-btn"><i class="fa-solid fa-plus"></i></button>
+                            </div>
+                            
+                            <ul class="todo-list" id="todo-items-list">
+                                <!-- 動態渲染 -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TAB 5: 模擬排課計畫 -->
+            <div id="tab-course-planner" class="tab-panel">
+                <div class="planner-container">
+                    <!-- 左：擬修課程新增器 -->
+                    <div class="glass-card planner-left">
+                        <h2><i class="fa-solid fa-plus text-color-fcu"></i> 規劃新修 / 模擬修改課程</h2>
+                        <p class="section-desc">您可模擬「修改預估成績」或「新增擬修課程」，以觀察對 GPA 以及二一/延畢警告的即時影響。</p>
+                        
+                        <form id="course-form" class="course-planner-form">
+                            <div class="form-group">
+                                <label for="course-code"><i class="fa-solid fa-hashtag"></i> 課程代碼</label>
+                                <input type="text" id="course-code" placeholder="如 CO-203" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="course-name"><i class="fa-solid fa-book"></i> 課程名稱</label>
+                                <input type="text" id="course-name" placeholder="如 演算法" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-half-form">
+                                    <label for="course-credits"><i class="fa-solid fa-award"></i> 學分</label>
+                                    <input type="number" id="course-credits" value="3" min="1" max="6" required>
+                                </div>
+                                <div class="form-group col-half-form">
+                                    <label for="course-type"><i class="fa-solid fa-tags"></i> 課程類別</label>
+                                    <select id="course-type">
+                                        <option value="required">專業必修</option>
+                                        <option value="elective">專業選修</option>
+                                        <option value="general">通識課程</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="course-score"><i class="fa-solid fa-gauge-high"></i> 預估/實得成績 (60分及格)</label>
+                                <input type="number" id="course-score" value="80" min="0" max="100" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-floppy-disk"></i> 新增/更新至本學期</button>
+                        </form>
+                        
+                        <!-- 快速批次排課推薦 (符合3分鐘錄入的UI/UX直覺設計) -->
+                        <div class="quick-add-section" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                            <h4 style="font-size: 13px; font-weight: 700; color: var(--color-fcu); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-bolt"></i> 逢甲核心課表推薦 (點擊一鍵快速排課)
+                            </h4>
+                            <div class="quick-add-buttons" id="quick-add-course-container" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                <!-- 將由 JS 根據科系動態載入 -->
+                            </div>
+                        </div>
+                        
+                        <div class="planner-help-box">
+                            <h4><i class="fa-solid fa-lightbulb"></i> 模擬排課小訣竅</h4>
+                            <ul>
+                                <li><strong>消除二一警告</strong>：若您目前處於二一危機，試著把不及格課程（分數 &lt; 60）修改為及格，或新增及格選修課。</li>
+                                <li><strong>補足學分缺口</strong>：點擊右側表格中的 <i class="fa-solid fa-trash"></i> 可以刪除擬修課程，點擊數值可動態調整分數！</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- 右：本學期修課列表動態表格 -->
+                    <div class="glass-card planner-right">
+                        <h2><i class="fa-solid fa-table-list text-color-fcu"></i> 本學期課表模擬與試算</h2>
+                        <p class="section-desc">以下為本學期修習課表。點擊各列可直接於左側載入，或按刪除移除。此表更動將即時連動全系統！</p>
+                        
+                        <div class="table-wrapper">
+                            <table class="academic-table" id="planner-courses-table">
+                                <thead>
+                                    <tr>
+                                        <th>課號</th>
+                                        <th>課程名稱</th>
+                                        <th>學分</th>
+                                        <th>類別</th>
+                                        <th>預計分數</th>
+                                        <th>修課狀態</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- 動態置入 -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="planner-summary-bar">
+                            <div class="summary-item">
+                                <span>當期總學分：</span>
+                                <strong id="planner-total-credits">15</strong>
+                            </div>
+                            <div class="summary-item">
+                                <span>當期不及格學分：</span>
+                                <strong id="planner-failed-credits" class="text-color-danger">0</strong>
+                            </div>
+                            <div class="summary-item">
+                                <span>當期平均 GPA：</span>
+                                <strong id="planner-avg-gpa" class="text-color-success">4.0</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast 彈窗通知容器 (錯誤防錯與直覺回饋) -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- 載入核心規則與數據庫 -->
+    <script src="fcu_rules.js"></script>
+    <!-- 載入系統控制器與動態交互邏輯 -->
+    <script src="app.js"></script>
+</body>
+</html>
