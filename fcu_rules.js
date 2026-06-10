@@ -213,11 +213,11 @@ const FCU_DEMO_STUDENTS = {
             serviceLearning2: true
         },
         currentCourses: [
-            { code: "CO-301", name: "演算法", credits: 3, type: "required", score: 88, status: "safe" },
-            { code: "CO-302", name: "編譯器設計", credits: 3, type: "required", score: 82, status: "safe" },
-            { code: "CO-351", name: "人工智慧導論", credits: 3, type: "elective", score: 95, status: "safe" },
-            { code: "CO-352", name: "雲端運算架構", credits: 3, type: "elective", score: 90, status: "safe" },
-            { code: "GE-401", name: "前瞻科技與社會", credits: 2, type: "general", score: 92, status: "safe" }
+            { code: "CO-301", name: "演算法", credits: 3, type: "required", score: 88, status: "safe", day: 3, periods: [2, 3, 4] },
+            { code: "CO-302", name: "編譯器設計", credits: 3, type: "required", score: 82, status: "safe", day: 2, periods: [6, 7, 8] },
+            { code: "CO-351", name: "人工智慧導論", credits: 3, type: "elective", score: 95, status: "safe", day: 1, periods: [6, 7, 8] },
+            { code: "CO-352", name: "雲端運算架構", credits: 3, type: "elective", score: 90, status: "safe", day: 4, periods: [2, 3, 4] },
+            { code: "GE-401", name: "前瞻科技與社會", credits: 2, type: "general", score: 92, status: "safe", day: 5, periods: [3, 4] }
         ],
         timeManagement: {
             weeklyStudyHours: 35,
@@ -248,12 +248,12 @@ const FCU_DEMO_STUDENTS = {
             serviceLearning2: false
         },
         currentCourses: [
-            { code: "BA-201", name: "中等會計學", credits: 3, type: "required", score: 45, status: "danger" }, // 會計被擋但偷偷選上或異常，或是本學期必修不及格
-            { code: "BA-202", name: "行銷管理", credits: 3, type: "required", score: 72, status: "safe" },
-            { code: "BA-203", name: "組織行為學", credits: 3, type: "required", score: 42, status: "danger" },
-            { code: "BA-251", name: "財務管理", credits: 3, type: "elective", score: 50, status: "danger" },
-            { code: "BA-252", name: "商業談判", credits: 3, type: "elective", score: 62, status: "safe" },
-            { code: "GE-201", name: "歷史與文化", credits: 2, type: "general", score: 80, status: "safe" }
+            { code: "BA-201", name: "中等會計學", credits: 3, type: "required", score: 45, status: "danger", day: 1, periods: [2, 3, 4] }, // 會計被擋但偷偷選上或異常，或是本學期必修不及格
+            { code: "BA-202", name: "行銷管理", credits: 3, type: "required", score: 72, status: "safe", day: 2, periods: [2, 3, 4] },
+            { code: "BA-203", name: "組織行為學", credits: 3, type: "required", score: 42, status: "danger", day: 3, periods: [6, 7, 8] },
+            { code: "BA-251", name: "財務管理", credits: 3, type: "elective", score: 50, status: "danger", day: 4, periods: [6, 7, 8] },
+            { code: "BA-252", name: "商業談判", credits: 3, type: "elective", score: 62, status: "safe", day: 5, periods: [6, 7, 8] },
+            { code: "GE-201", name: "歷史與文化", credits: 2, type: "general", score: 80, status: "safe", day: 5, periods: [1, 2] }
         ],
         timeManagement: {
             weeklyStudyHours: 6,
@@ -286,10 +286,10 @@ const FCU_DEMO_STUDENTS = {
             serviceLearning2: false
         },
         currentCourses: [
-            { code: "EE-401", name: "專題實作(二)", credits: 2, type: "required", score: 85, status: "safe" },
-            { code: "EE-302", name: "電子學(二)", credits: 3, type: "required", score: 61, status: "warning" },
-            { code: "EE-201", name: "工程數學(一)", credits: 3, type: "required", score: 65, status: "safe" },
-            { code: "GE-303", name: "生命倫理", credits: 2, type: "general", score: 70, status: "safe" }
+            { code: "EE-401", name: "專題實作(二)", credits: 2, type: "required", score: 85, status: "safe", day: 1, periods: [8, 9] },
+            { code: "EE-302", name: "電子學(二)", credits: 3, type: "required", score: 61, status: "warning", day: 2, periods: [2, 3, 4] },
+            { code: "EE-201", name: "工程數學(一)", credits: 3, type: "required", score: 65, status: "safe", day: 3, periods: [2, 3, 4] },
+            { code: "GE-303", name: "生命倫理", credits: 2, type: "general", score: 70, status: "safe", day: 4, periods: [7, 8] }
         ],
         timeManagement: {
             weeklyStudyHours: 12,
